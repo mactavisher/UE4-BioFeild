@@ -27,6 +27,7 @@ class FIconImage;
 class ABFEmptyMagazine;
 class ABFBulletShell;
 class UUserWidget;
+class ABFAttachment_Scope;
 
 /**weapon types can be assigned via blueprints*/
 UENUM(BlueprintType)
@@ -85,6 +86,15 @@ struct FWeaponAttachmentSlot {
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "AttachmentInstance")
 		uint8 bisOccupied : 1;
 
+	/** is this attachment slot currently be occupied?  */
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "AttachmentInstance")
+		uint8 bisAvailable : 1;
+
+	/** Default values */
+	FWeaponAttachmentSlot() {
+		bisOccupied = false;
+		bisAvailable = true;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -156,7 +166,7 @@ struct FWeaponSpreadData
 		float WeaponSpreadIncrement;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
-		float WeaponDecressment;;
+		float WeaponDecressment;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
 		float WeaponSpreadMax;
@@ -256,15 +266,20 @@ class BIOFEILD_API ABFWeaponBase : public AActor
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 		bool bShouldPlayFirstEquipedAnim;
 
-	UPROPERTY(BlueprintAssignable, Category = "Weapon Events")
+	UPROPERTY(BlueprintAssignable, Category = "WeaponEvents")
 		FOnWeaponOverlapSignature OnWeaponBeginOverlap;
 
 	
 	////////////////////////////////////
 	//////weapon attachments
 	/////////////////////////////////////
-	UPROPERTY(BlueprintAssignable, Category = "Weapon Events")
-		TArray<FWeaponAttachmentSlot> WeaponAttachmentSlot;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "WeaponAttachments")
+		FWeaponAttachmentSlot ScopeSlot;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "WeaponAttachments")
+		FWeaponAttachmentSlot SilencerSlot;
+
+
 
 
 	///////////////////////////////////

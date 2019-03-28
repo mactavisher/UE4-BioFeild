@@ -476,13 +476,14 @@ void ABFWeaponBase::CreateWeaponWidgetInstances()
 
 void ABFWeaponBase::SetupAttachments()
 {
-	if (ScopeClass)
+	if (ScopeSlot.AttachmentClass&&ScopeSlot.bisAvailable&&!ScopeSlot.bisOccupied)
 	{
-		WeaponScope = GetWorld()->SpawnActorDeferred<ABFAttachment_Scope>(ScopeClass, GetActorTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
-		if (WeaponScope)
+		ScopeSlot.AttachmentInstance = GetWorld()->SpawnActorDeferred<ABFAttachment_Scope>(ScopeSlot.AttachmentClass, GetActorTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		if (ScopeSlot.AttachmentInstance)
 		{
-			WeaponScope->SetWeaponOwner(this);
-			WeaponScope->AttachToComponent(WeaponMeshComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponMeshComponent->ScopeSocket);
+			ScopeSlot.AttachmentInstance->SetWeaponOwner(this);
+			ScopeSlot.AttachmentInstance->AttachToComponent(WeaponMeshComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponMeshComponent->ScopeSocket);
+			ScopeSlot.bisOccupied = true;
 		}
 	}
 }

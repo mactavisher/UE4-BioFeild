@@ -66,8 +66,6 @@ void AGameMode_Menu::GetWeaponScopeClasses(UObjectLibrary* ObjectLibary, TArray<
 
 void AGameMode_Menu::GetLevels(TArray<FAssetData>& LevelAsset)
 {
-	TArray<FAssetData> CurrentLevelList;  //container for weapon 
-	LevelLibrary->GetAssetDataList(CurrentLevelList);
-	LevelAsset = CurrentLevelList;
+	LevelLibrary->GetAssetDataList(LevelAsset);
 }
 
