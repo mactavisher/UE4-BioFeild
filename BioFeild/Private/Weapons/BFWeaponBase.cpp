@@ -18,6 +18,7 @@
 #include "UI/BFUserWidgetBase.h"
 #include "Effects/BFBulletShell.h"
 #include "Curves/CurveFloat.h"
+#include "Attachments/BFAttachment_Silencer.h"
 #include "Attachments/BFAttachment_Scope.h"
 
 ABFWeaponBase::ABFWeaponBase(const FObjectInitializer& ObjectInitailizer) :Super(ObjectInitailizer)
@@ -110,6 +111,10 @@ void ABFWeaponBase::SingleShot()
 		SpawnProjectile();
 		WeaponOwner->OnFire();
 		GetWorldTimerManager().SetTimer(ResetPlayerFireTimerHandle, this, &ABFWeaponBase::ResetPlayerFire, 1.0f, false, 0.05f);
+		if (SilencerSlot.AttachmentInstance)
+		{
+			WeaponOwner->MakeNoise(FireLoudness*0.5f, WeaponOwner, WeaponMeshComponent->GetSocketLocation(WeaponMeshComponent->MuzzleFlashSocket), NoiseRadius*0.5f);
+		}
 		WeaponOwner->MakeNoise(FireLoudness, WeaponOwner, WeaponMeshComponent->GetSocketLocation(WeaponMeshComponent->MuzzleFlashSocket), NoiseRadius);
 		WeaponMeshComponent->PlayAnimation(WeaponGunAnim.FireAnim, false);
 		PlayFireEffects();
@@ -383,10 +388,9 @@ void ABFWeaponBase::SetWeaponOwner(ABFPlayerCharacter* NewOwner)
 
 void ABFWeaponBase::PlayFireEffects()
 {
-	if (FireSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), FireSound, WeaponMeshComponent->GetSocketLocation(WeaponMeshComponent->MuzzleFlashSocket));
-	}
+	//USoundCue* FireSoundToPlay = nullptr;
+	USoundCue* FireSoundToPlay = SilencerSlot.AttachmentInstance == nullptr ? FireSound : Cast<ABFAttachment_Silencer>(SilencerSlot.AttachmentInstance)->GetSilencerFireSound();
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), FireSoundToPlay, WeaponMeshComponent->GetSocketLocation(WeaponMeshComponent->MuzzleFlashSocket));
 	if (MuzzleFlash)
 	{
 		const FName MuzzleFlashSocket = WeaponMeshComponent->MuzzleFlashSocket;
@@ -485,6 +489,12 @@ void ABFWeaponBase::SetupAttachments()
 			ScopeSlot.AttachmentInstance->AttachToComponent(WeaponMeshComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponMeshComponent->ScopeSocket);
 			ScopeSlot.bisOccupied = true;
 		}
+	}
+	if (SilencerSlot.AttachmentClass&&SilencerSlot.bisAvailable && !SilencerSlot.bisOccupied)
+	{
+		SilencerSlot.AttachmentInstance = GetWorld()->SpawnActorDeferred<ABFAttachment_Silencer>(ScopeSlot.AttachmentClass, GetActorTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		ScopeSlot.AttachmentInstance->AttachToComponent(WeaponMeshComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+		ScopeSlot.bisOccupied = true;
 	}
 }
 
