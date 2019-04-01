@@ -12,6 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTakeProjectileDamageSignature, ABF
 
 class ABFProjectile;
 class ABFBaseCharacter;
+class UBFAnimInstance;
 
 USTRUCT(BlueprintType)
 struct FSocketNames {
@@ -86,6 +87,10 @@ protected:
 	UPROPERTY()
 		ABFBaseCharacter* OwnerCharacter;
 
+	/** cached  current Animation instance  */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation")
+		UBFAnimInstance* CurrentAnimInstance;
+
 	/** simulate left foot step */
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter|FootStep")
 		virtual FHitResult OnLeftStep();
@@ -133,4 +138,9 @@ public:
 	/** handle hit */
 	UFUNCTION()
 		virtual void HandleHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	    virtual void BeginPlay()override;
+
+public:
+	virtual UBFAnimInstance* GetCurrentAnimInstance();
 };

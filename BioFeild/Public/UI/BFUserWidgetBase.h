@@ -9,10 +9,11 @@
 /**
  * 
  */
+
 UCLASS()
 class BIOFEILD_API UBFUserWidgetBase : public UUserWidget
 {
 	GENERATED_BODY()
 	
-	
+    
 };

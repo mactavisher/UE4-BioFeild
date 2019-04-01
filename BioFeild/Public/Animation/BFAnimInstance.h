@@ -13,7 +13,7 @@ class UBFCharacterMovementComponent;
 class ABFWeaponBase;
 
 /**
- * 
+ *
  */
 UCLASS()
 class BIOFEILD_API UBFAnimInstance : public UAnimInstance
@@ -22,75 +22,84 @@ class BIOFEILD_API UBFAnimInstance : public UAnimInstance
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bIsIdle : 1;
+		uint8 bIsIdle : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bCanWalking : 1;
+		uint8 bCanWalking : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bIsWalking : 1;
+		uint8 bIsWalking : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bCanStopWalking : 1;
+		uint8 bCanStopWalking : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bCanSprint : 1;
+		uint8 bCanSprint : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bIsSprinting : 1;
+		uint8 bIsSprinting : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bCanCrouch : 1;
+		uint8 bCanCrouch : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bIsCrouching : 1;
+		uint8 bIsCrouching : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bIsArmed : 1;
+		uint8 bIsArmed : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bIsFalling : 1;
+		uint8 bIsFalling : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bCanProne : 1;
+		uint8 bCanProne : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bIsProne : 1;
+		uint8 bIsProne : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bIsInAir : 1;
+		uint8 bIsInAir : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
-	uint8 bCanJump : 1;
+		uint8 bCanJump : 1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "state")
+		uint8 bisADS;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "State")
+		uint8 bisAiming;
 
 	UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category = "State")
-	ABFPlayerCharacter* Character;
+		ABFPlayerCharacter* Character;
 
 	UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category = "State")
-	float PitchOffset;
+		float PitchOffset;
 
 	UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category = "State")
-	float Direction;
+		float Direction;
 
 	UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category = "State")
-	float SpeedXY;
+		float SpeedXY;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SkeletalMesh")
-	UBFSkeletalMeshComponent* CharacterSkeletalMesh;
+		UBFSkeletalMeshComponent* CharacterSkeletalMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SkeletalMesh")
-	UBFCharacterMovementComponent* CharacterMovementComp;
+		UBFCharacterMovementComponent* CharacterMovementComp;
 
-	UPROPERTY(VisibleAnywhere,Category = "State")
-	EWeaponType CurrentWeaponType;
+	UPROPERTY(VisibleAnywhere, Category = "State")
+		EWeaponType CurrentWeaponType;
 
 	/** native update for variables tick */
 	virtual void NativeUpdateAnimation(float DeltaSeconds)override;
 
+	/** native initialize Animation implementation */
 	virtual void NativeInitializeAnimation()override;
 
+	/** calculate Direction between character forward vector and Input vector */
 	virtual float  CalculateDirection();
 
+	/** calculate horizontal speed */
 	virtual float GetXYSpeed();
 
 };

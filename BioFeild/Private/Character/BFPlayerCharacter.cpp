@@ -13,6 +13,7 @@
 #include "BFComponents/BFWeaponMeshComponent.h"
 #include "EngineMinimal.h"
 #include "UI/BFUserWidgetBase.h"
+#include "Animation/BFAnimInstance.h"
 #include "Bot/BFZombie.h"
 #include "GameFrameWork/Actor.h"
 
@@ -434,12 +435,14 @@ void ABFPlayerCharacter::FireWeapon_Implementation()
 void ABFPlayerCharacter::StopADS_Implementation()
 {
 	CameraComp->SetupAttachment(CameraArmComp, NAME_None);
+	CharacterMesh->GetCurrentAnimInstance()->bisADS = false;
 }
 
 void ABFPlayerCharacter::ADS_Implementation()
 {
 	const FVector IronSightLocation = CharacterMesh->GetSocketLocation(CharacterMesh->SocketNames.IronSightSocket);
 	CameraComp->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, CharacterMesh->SocketNames.IronSightSocket);
+	CharacterMesh->GetCurrentAnimInstance()->bisADS = true;
 }
 
 void ABFPlayerCharacter::StopAiming_Implementation()
@@ -447,6 +450,7 @@ void ABFPlayerCharacter::StopAiming_Implementation()
 	if (CurrentWeapon)
 	{
 		bUseControllerRotationYaw = false;
+		CharacterMesh->GetCurrentAnimInstance()->bisADS = false;
 		UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
 		if (CharacterMovement)
 		{
@@ -465,6 +469,7 @@ void ABFPlayerCharacter::Aiming_Implementation()
 	if (CurrentWeapon)
 	{
 		bUseControllerRotationYaw = true;
+		CharacterMesh->GetCurrentAnimInstance()->bisAiming = true;
 		UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
 		if (CharacterMovement)
 		{

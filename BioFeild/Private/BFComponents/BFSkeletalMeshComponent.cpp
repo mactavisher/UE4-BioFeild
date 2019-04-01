@@ -153,6 +153,24 @@ void UBFSkeletalMeshComponent::HandleHit(UPrimitiveComponent* HitComponent, AAct
 	}
 }
 
+void UBFSkeletalMeshComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	CurrentAnimInstance = Cast<UBFAnimInstance>(GetAnimInstance());
+}
+
+UBFAnimInstance* UBFSkeletalMeshComponent::GetCurrentAnimInstance()
+{
+	if (CurrentAnimInstance)
+	{
+		return CurrentAnimInstance;
+	}
+	else {
+		CurrentAnimInstance = Cast<UBFAnimInstance>(GetAnimInstance());
+		return CurrentAnimInstance;
+	}
+}
+
 void UBFSkeletalMeshComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
