@@ -64,10 +64,10 @@ public:
 		uint8 bCanJump : 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "state")
-		uint8 bisADS;
+		uint8 bisADS:1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "State")
-		uint8 bisAiming;
+		uint8 bisAiming:1;
 
 	UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category = "State")
 		ABFPlayerCharacter* Character;

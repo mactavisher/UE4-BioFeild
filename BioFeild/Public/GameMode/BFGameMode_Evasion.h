@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+#include "BioFeild.h"
 #include "BFGameMode_Evasion.generated.h"
 
 
@@ -11,7 +12,7 @@ class ABFZombieController;
 class ABFPlayerController;
 /** game difficulty types */
 UENUM(BlueprintType)
-enum class EGameDifficulty:uint8 {
+enum class EGameDifficulty :uint8 {
 	easy,
 	medium,
 	hard,
@@ -24,7 +25,7 @@ namespace EGameLevel
 	enum Type
 	{
 		SurviveTheSurge,
-        TurnnelRush,
+		TurnnelRush,
 		Evasion,
 	};
 }
@@ -45,10 +46,10 @@ public:
 		TArray<TSubclassOf<class ABFZombie>> ZombieTypeClasses;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ZombieType")
-		TSubclassOf<class ABFPickup_Health> AmmoPickupClass ;
+		TSubclassOf<class ABFPickup_Health> AmmoPickupClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ZombieType")
-		TSubclassOf<class ABFPickup_Health> HealthPickupClass ;
+		TSubclassOf<class ABFPickup_Health> HealthPickupClass;
 
 	/** player maximum lives to re_spawn after dead  */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ZombieType")
@@ -56,6 +57,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GameConfig")
 		EGameDifficulty GameDifficulty;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Rules")
+		float TeamDamageModifier;
+
 
 
 private:
@@ -67,27 +72,28 @@ private:
 		uint8 CurrentLivesLeft;
 
 	/** current game level player is in  */
-	    EGameLevel::Type  CurrentGameLevel;
+	EGameLevel::Type  CurrentGameLevel;
 
-		UPROPERTY()
+	UPROPERTY()
 		int32 SurviveTheSurgeZombies;
 
-		UPROPERTY()
+	UPROPERTY()
 		int32 SurviveTheSurgeZombieLeft;
 
-		UPROPERTY()
+	UPROPERTY()
 		int32 ZombieSpawned;
 
-		UPROPERTY()
+	UPROPERTY()
 		float TimeBetweenWave;
 
-		UPROPERTY()
+	UPROPERTY()
 		float PrepareTime;
 
-		UPROPERTY()
+	UPROPERTY()
 		FTimerHandle WaveStartTimerHandle;
 
-		FTimerHandle GameStartTimerHandle;
+	UPROPERTY()
+	    FTimerHandle GameStartTimerHandle;
 
 public:
 	virtual void ResetCurrentLivesLeft();
@@ -107,7 +113,7 @@ public:
 	virtual void OnKillZombie(ABFPlayerController* Killer);
 
 	virtual void ReduceZombie(int32 ReduceZombieNum);
-    
+
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)override;
 
 	virtual void Prepare();
@@ -116,4 +122,5 @@ public:
 
 	virtual void FinishCurrentWave();
 
+	virtual void ModifyDamage(float& Outdamage, AController* DamageCauser, AController*DamagedPlayer);
 };

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "BioFeild.h"
 #include "BFPlayerController.generated.h"
 
 class ABFPlayerCharacter;
@@ -32,6 +33,8 @@ protected:
 
 	int32  Score;
 
+	ETeam InTeam;
+
 protected:
 	virtual void BeginPlay()override;
 
@@ -45,6 +48,10 @@ public:
 	virtual void EnableSlowMotion();
 
 	virtual void DisableSlowMotion();
+
+	virtual void SetTeam(ETeam InTeam) { this->InTeam = InTeam; }
+
+	virtual  ETeam GetTeam()const { return InTeam; }
 
 	/** return current controlled character */
 	virtual ABFPlayerCharacter* GetPoccessedPlayerCharacter()const { return PoccessedPlayerCharacter; }

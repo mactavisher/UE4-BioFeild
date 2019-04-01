@@ -7,15 +7,15 @@
 #include "Projectile/BFProjectile.h"
 #include "EngineMinimal.h"
 #include "Animation/BFAnimInstance.h"
+#include "BFComponents/BFCharacterAudioComponent.h"
 #include "Character/BFPlayerController.h"
-#include "BFComponents/BFVoiceComponent.h"
 
 // Sets default values
 ABFBaseCharacter::ABFBaseCharacter(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer.SetDefaultSubobjectClass<UBFCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UBFHealthComponent>(this, TEXT("HealthComp"));
-	VoiceComponent = ObjectInitializer.CreateDefaultSubobject<UBFVoiceComponent>(this, TEXT("VoiceComp"));
+	CharacterVoiceComponent = ObjectInitializer.CreateDefaultSubobject<UBFCharacterAudioComponent>(this, TEXT("AudioComp"));
 }
 
 void ABFBaseCharacter::BeginPlay()
@@ -28,16 +28,18 @@ void ABFBaseCharacter::BeginPlay()
 void ABFBaseCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	VoiceComponent->SetOwner(this);
+	CharacterVoiceComponent->SetOwner(this);
+	CharacterVoiceComponent->SetCharacterGender(CharacterGender);
 	CharacterMesh = Cast<UBFSkeletalMeshComponent>(GetMesh());
 	CharacterMesh->SetCharacterOwner(this);
+	CharacterVoiceComponent->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, CharacterMesh->SocketNames.MouthSocket);
 	CharacterState = ECharacterState::Idle;
 	CharacterGender = ECharacterGender::male;
-	VoiceComponent->SetCharacterGender(CharacterGender);
 	HealthComponent->SetOwnerCharacter(this);
 	CharacterMoventComp = GetBFCharacterMovement();
 	CharacterMoventComp->SetOwnerCharacter(this);
 	bUseControllerRotationYaw = false;
+	CharacterVoiceComponent->SetOwner(this);
 	bIsDead = false;
 	//bind event dispatcher when components are initialized 
 	HealthComponent->OnCharacterShouldDie.AddDynamic(this, &ABFBaseCharacter::HandleDeath);
@@ -161,7 +163,6 @@ void ABFBaseCharacter::HandleDeath()
 	bIsDead = true;
 	PrimaryActorTick.bCanEverTick = false;
 	StartDestoryCharacter();
-	VoiceComponent->Speak(EVoiceType::Death);
 	ABFPlayerController* CharacterController = Cast<ABFPlayerController>(GetController());
 	if (CharacterController)
 	{
@@ -358,6 +359,9 @@ float ABFBaseCharacter::GetHealthPercentage() const
 
 void ABFBaseCharacter::OnLowHealth()
 {
-	//may be we should play heavy breath sound here
-	VoiceComponent->Speak(EVoiceType::LowHealth);
+	CharacterVoiceComponent->SetVoiceType(EVoiceType::LowHealth);
+	if (!CharacterVoiceComponent->IsPlaying())
+	{
+		CharacterVoiceComponent->Play(0.f);
+	}
 }

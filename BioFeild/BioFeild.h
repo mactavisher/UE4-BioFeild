@@ -58,3 +58,12 @@ enum class ECharacterGender :uint8
 	female
 };
 
+/**2 Type of Character */
+UENUM(BlueprintType)
+enum class ETeam :uint8
+{
+	CT         UMETA(DisplayName = "Counter Terrolist"),
+	T           UMETA(DisplayName = "Terrolist")
+};
+
+

@@ -20,6 +20,7 @@ class UBFVoiceComponent;
 class UBFCharacterMovementComponent;
 class ABFPlayerController;
 class UAnimMontage;
+class UBFCharacterAudioComponent;
 
 /** specify a character's current state */
 namespace ECharacterState
@@ -177,11 +178,11 @@ class BIOFEILD_API ABFBaseCharacter : public ACharacter
 		GENERATED_UCLASS_BODY()
 
 		/*create health component for character */
-		UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HealthComp", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HealthComp", meta = (AllowPrivateAccess = "true"))
 		UBFHealthComponent* HealthComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HealthComp", meta = (AllowPrivateAccess = "true"))
-		UBFVoiceComponent* VoiceComponent;
+		UBFCharacterAudioComponent* CharacterVoiceComponent;
 
 	/*particle effect when character spawns or re_spawns */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Effects|Particle")

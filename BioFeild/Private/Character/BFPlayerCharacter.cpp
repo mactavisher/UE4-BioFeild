@@ -22,6 +22,8 @@ ABFPlayerCharacter::ABFPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	CameraComp = ObjectInitializer.CreateDefaultSubobject<UCameraComponent>(this, TEXT("CameraComp"));
 	CameraArmComp = ObjectInitializer.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("SprintArmComp"));
 	InventoryComponent = ObjectInitializer.CreateDefaultSubobject<UBFInventoryComponent>(this, TEXT("InventoryComp"));
+	AimingFOVTimeLineComponent=ObjectInitializer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("AimingFOVTimelineComp"));
+	AimingFOVTimeLineComponent->SetComponentTickEnabled(true);
 	CameraArmComp->TargetArmLength = 110.f;
 	CameraArmComp->bUsePawnControlRotation = true;
 	CameraArmComp->SetupAttachment(RootComponent);
@@ -31,6 +33,8 @@ ABFPlayerCharacter::ABFPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	CharacterHeartBeatData.bShouldCalHeartBeatRate = true;
 	CharacterActionType = ECharacterWeaponAction::Idle;
 	OnUnequipWeapon.AddDynamic(this, &ABFPlayerCharacter::OnWeaponUnequiped);
+	AimingFOVTimelineDelegate.BindUFunction(this, "AimingFOVDelegateCallBack");
+
 }
 
 void ABFPlayerCharacter::BeginPlay()
@@ -49,6 +53,7 @@ void ABFPlayerCharacter::Tick(float DeltaTime)
 		CalculateTurnData();
 	}
 	TraceDetect();
+	//AimingFOVTimeLineComponent->TickComponent(DeltaTime, ELevelTick::LEVELTICK_TimeOnly, NULL);
 }
 
 void ABFPlayerCharacter::PostInitializeComponents()
@@ -416,6 +421,15 @@ void ABFPlayerCharacter::TraceDetect()
 	//#endif
 }
 
+void ABFPlayerCharacter::AimingFOVDelegateCallBack()
+{
+	float TimelinePosition = AimingFOVTimeLineComponent->GetPlaybackPosition();
+	if (AimingFOVCurve)
+	{
+		CameraComp->SetFieldOfView(AimingFOVCurve->GetFloatValue(TimelinePosition));
+	}
+}
+
 void ABFPlayerCharacter::StopFireWeapon_Implementation()
 {
 	if (CurrentWeapon)
@@ -450,7 +464,7 @@ void ABFPlayerCharacter::StopAiming_Implementation()
 	if (CurrentWeapon)
 	{
 		bUseControllerRotationYaw = false;
-		CharacterMesh->GetCurrentAnimInstance()->bisADS = false;
+		CharacterMesh->GetCurrentAnimInstance()->bisAiming = false;
 		UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
 		if (CharacterMovement)
 		{
@@ -461,6 +475,7 @@ void ABFPlayerCharacter::StopAiming_Implementation()
 			}
 			CharacterMovement->SetDefaultMaxWalkSpeed();
 		}
+			AimingFOVTimeLineComponent->Reverse();
 	}
 }
 
@@ -481,6 +496,11 @@ void ABFPlayerCharacter::Aiming_Implementation()
 				CharacterMovement->MaxWalkSpeed = CharacterMovement->GetDefaultMaxWalkSpeed()*(AimingSpeedModifier + CrouchSpeedModifier)*0.5f;
 			}
 			CharacterMovement->SetAimingSpeed();
+		}
+		if (AimingFOVTimeLineComponent)
+		{
+			AimingFOVTimeLineComponent->AddInterpFloat(AimingFOVCurve, AimingFOVTimelineDelegate);
+			AimingFOVTimeLineComponent->Play();
 		}
 	}
 }

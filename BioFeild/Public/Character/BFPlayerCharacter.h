@@ -7,6 +7,7 @@
 #include "Character/BFPlayerController.h"
 #include "Camera/CameraComponent.h"
 #include "Animation/BFAnimInstance.h"
+#include "Components/TimelineComponent.h"
 #include "BFPlayerCharacter.generated.h"
 
 class ABFWeaponBase;
@@ -63,11 +64,17 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		UBFInventoryComponent* InventoryComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+		UTimelineComponent* AimingFOVTimeLineComponent;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BFCamera")
 		float AimingCameraArmLenghModifier;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TraceDetect")
 		FCenterTraceDetectResult CenterTraceDetect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Curve")
+		UCurveFloat* AimingFOVCurve;
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnWeaponUnequipedFinishedSignature OnUnequipWeapon;
@@ -112,6 +119,8 @@ protected:
 	/** CurrentWeapon the player equipped */
 	UPROPERTY()
 	UBFAnimInstance* CurrentAnimInstance;
+
+	FOnTimelineFloat AimingFOVTimelineDelegate;
 
 protected:
 	virtual void BeginPlay()override;
@@ -254,6 +263,8 @@ public:
 
 	   virtual void TraceDetect();
 
+	   UFUNCTION()
+		   virtual void AimingFOVDelegateCallBack();
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
-		virtual FCenterTraceDetectResult GetTraceDetectResult()const { return CenterTraceDetect; }
+		 virtual FCenterTraceDetectResult GetTraceDetectResult()const { return CenterTraceDetect; }
 };
