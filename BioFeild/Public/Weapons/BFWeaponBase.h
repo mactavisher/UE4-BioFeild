@@ -388,7 +388,7 @@ protected:
 	/** weapon spread timer handle */
 	FTimerHandle WeaponSpreadTimerHandle;
 
-	FOnTimelineFloat RecoilEventDelegate;
+	FOnTimelineFloat RecoilPlayerDelegate;
 
 	FOnTimelineEventStatic RecoilFinishedDelegate;
 

@@ -31,6 +31,7 @@ ABFWeaponBase::ABFWeaponBase(const FObjectInitializer& ObjectInitailizer) :Super
 	InteractBox = ObjectInitailizer.CreateDefaultSubobject<UBoxComponent>(this, TEXT("Interact Comp"));
 	InteractBox->SetBoxExtent(FVector(20.f, 20.f, 20.f), true);
 	InteractBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	RecoilPlayerDelegate.BindUFunction(this, "RecoilPlayer");
 	bShouldPlayFirstEquipedAnim = false;
 	ShootCount = 0;
 	canBePickedUp = false;
@@ -96,9 +97,10 @@ void ABFWeaponBase::Fire()
 		{
 			GetWorldTimerManager().SetTimer(BurstShotTimerHandle, this, &ABFWeaponBase::SingleShot, WeaponConfigData.TimeBetweenShots, true, 0.f);
 			NotifyBurst();
-			if (RecoilCurve)
+			if (RecoilCurve&&RecoilTimeLineComp)
 			{
-				RecoilTimeLineComp->AddInterpFloat(RecoilCurve, RecoilEventDelegate);
+				RecoilTimeLineComp->AddInterpFloat(RecoilCurve, RecoilPlayerDelegate);
+				RecoilTimeLineComp->PlayFromStart();
 			}
 		}
 	}
@@ -161,6 +163,10 @@ void ABFWeaponBase::BurstShotFinished()
 		NotifyBurstStoped();
 		GetWorldTimerManager().SetTimer(WeaponSpreadTimerHandle, this, &ABFWeaponBase::DescressSpread, GetWorld()->GetDeltaSeconds(), true, 0.1f);
 		CurrentSpread = 0.f;
+		if (RecoilTimeLineComp)
+		{
+			RecoilTimeLineComp->Stop();
+		}
 	}
 }
 
@@ -258,16 +264,17 @@ FVector ABFWeaponBase::AdjustProjectileDirection(FHitResult & TraceHit, FVector 
 void ABFWeaponBase::RecoilPlayer(float Value)
 {
 	ABFPlayerController* const PlayerController = GetWeaponOwner()->GetPlayerController();
+	float TimeInPostion = RecoilTimeLineComp->GetPlaybackPosition();
 	if (PlayerController&&RecoilCurve)
 	{
-		Value = RecoilCurve->GetFloatValue(GetWorld()->GetDeltaSeconds());
+		Value = RecoilCurve->GetFloatValue(TimeInPostion);
 		PlayerController->AddPitchInput(Value);
 	}
 }
 
 void ABFWeaponBase::RecoilCallBackFunc()
 {
- 
+    
 }
 
 void ABFWeaponBase::StopRecoilPlayer()
