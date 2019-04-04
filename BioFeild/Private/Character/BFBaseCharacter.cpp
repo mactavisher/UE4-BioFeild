@@ -44,6 +44,7 @@ void ABFBaseCharacter::PostInitializeComponents()
 	//bind event dispatcher when components are initialized 
 	HealthComponent->OnCharacterShouldDie.AddDynamic(this, &ABFBaseCharacter::HandleDeath);
 	HealthComponent->OnLowHealth.AddDynamic(this, &ABFBaseCharacter::OnLowHealth);
+	HealthComponent->OnHealthReduced.AddDynamic(this, &ABFBaseCharacter::OnHealthReduced);
 }
 
 
@@ -139,6 +140,7 @@ float ABFBaseCharacter::PlayAnimMontage(class UAnimMontage* AnimMontage, float I
 float ABFBaseCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	HealthComponent->ReduceHealth(Damage);
+	
 	return Damage;
 }
 
@@ -157,6 +159,7 @@ void ABFBaseCharacter::ApplyDamageMomentum(float DamageTaken, FDamageEvent const
 
 void ABFBaseCharacter::HandleDeath()
 {
+	CharacterVoiceComponent->PlayVoice(EVoiceType::Death);
 	CharacterMesh->SetSimulatePhysics(true);
 	CharacterMesh->SetComponentTickEnabled(true);
 	GetBFCharacterMovement()->StopMovementImmediately();
@@ -173,6 +176,11 @@ void ABFBaseCharacter::HandleDeath()
 #endif
 }
 
+
+void ABFBaseCharacter::OnHealthReduced(float ReduceAmount)
+{
+	CharacterVoiceComponent->PlayVoice(EVoiceType::Hurts);
+}
 
 void ABFBaseCharacter::Suicide()
 {
@@ -359,9 +367,5 @@ float ABFBaseCharacter::GetHealthPercentage() const
 
 void ABFBaseCharacter::OnLowHealth()
 {
-	CharacterVoiceComponent->SetVoiceType(EVoiceType::LowHealth);
-	if (!CharacterVoiceComponent->IsPlaying())
-	{
-		CharacterVoiceComponent->Play(0.f);
-	}
+	
 }

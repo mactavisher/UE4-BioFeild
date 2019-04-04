@@ -28,7 +28,7 @@ namespace ECharacterWeaponAction
 }
 
 USTRUCT(BlueprintType)
-struct FCenterTraceDetectResult {
+struct FItemTraceDetectResult {
 
 	GENERATED_USTRUCT_BODY()
 
@@ -71,7 +71,7 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 		float AimingCameraArmLenghModifier;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TraceDetect")
-		FCenterTraceDetectResult CenterTraceDetect;
+		FItemTraceDetectResult DetectedItemInfo;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Curve")
 		UCurveFloat* AimingFOVCurve;
@@ -116,7 +116,7 @@ protected:
 	/** what is the character currently doing with weapons  */
 	ECharacterWeaponAction::Type CharacterActionType;
 
-	/** CurrentWeapon the player equipped */
+	/** cached animation instance */
 	UPROPERTY()
 	UBFAnimInstance* CurrentAnimInstance;
 
@@ -164,6 +164,10 @@ protected:
 	virtual void StartHoldBreath();
 
 	virtual void StopHoldBreath();
+
+	virtual void ToggleAimMode();
+
+	virtual void NotifyItemDetected(AActor* DetectedItem);
 
 	///////////////////////////////////////////
 	/// equip Slot Weapons
@@ -261,10 +265,10 @@ public:
 	UFUNCTION()
 		virtual void FixedStyleCamera();
 
-	   virtual void TraceDetect();
+	   virtual void DetectItem();
 
 	   UFUNCTION()
 		   virtual void AimingFOVDelegateCallBack();
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
-		 virtual FCenterTraceDetectResult GetTraceDetectResult()const { return CenterTraceDetect; }
+		 virtual FItemTraceDetectResult GetTraceDetectResult()const { return DetectedItemInfo; }
 };

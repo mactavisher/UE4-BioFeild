@@ -10,6 +10,7 @@ class ABFBaseCharacter;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShouldDieSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLowHealthSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReduceHealthSignature,float,ReduceAmount);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BIOFEILD_API UBFHealthComponent : public UActorComponent
@@ -32,9 +33,11 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnLowHealthSignature OnLowHealth;
 
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+		FOnReduceHealthSignature OnHealthReduced;
+
 protected:
 	float CurrentHealth;
-
 	ABFBaseCharacter* OwnerCharacter;
 
 public:
@@ -65,7 +68,7 @@ public:
 	UFUNCTION()
 		virtual float GetHealthPercentage();
 
-	virtual bool CheckIsLowHealth();
+	    virtual bool CheckIsLowHealth();
 
-	virtual void BeginPlay()override;
+	    virtual void BeginPlay()override;
 };

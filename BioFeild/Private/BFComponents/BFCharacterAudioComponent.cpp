@@ -14,6 +14,14 @@ UBFCharacterAudioComponent::UBFCharacterAudioComponent(const FObjectInitializer&
 void UBFCharacterAudioComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	if(CharacterGender == ECharacterGender::male)
+	{
+		Sound = MaleSoundData.NormalBreathSound;
+	}
+	if(CharacterGender == ECharacterGender::female)
+	{
+		Sound = FemaleSoundData.NormalBreathSound;
+	}
 	CharacterMesh = CharacterOwner->GetBFSkeletalMesh();
 }
 
@@ -25,18 +33,17 @@ void UBFCharacterAudioComponent::SetOwner(ABFBaseCharacter* NewOwner)
 USoundCue* UBFCharacterAudioComponent::GetPlaySound(EVoiceType VoiceType)
 {
 	USoundCue* SoundToPlay = nullptr;
-	if(CharacterGender==ECharacterGender::male)
-	switch (VoiceType)
-	{
-	case EVoiceType::Hurts:SoundToPlay = MaleSoundData.HurtsVoice;break;
-	case EVoiceType::HighHeartBeatRate:SoundToPlay = MaleSoundData.HurtsVoice; break;
-	case EVoiceType::LowEnergy:SoundToPlay = nullptr;break;
-	case EVoiceType::FallingFormHeight:SoundToPlay = MaleSoundData.FallingFromHeightVoice;break;
-	case EVoiceType::Death:SoundToPlay = MaleSoundData.DeathVoice;break;
-	case EVoiceType::LowHealth:SoundToPlay = MaleSoundData.LowHealthBreathVoice;break;
-	default:SoundToPlay=nullptr; break;
-	}
-
+	if (CharacterGender == ECharacterGender::male)
+		switch (VoiceType)
+		{
+		case EVoiceType::Hurts:SoundToPlay = MaleSoundData.HurtsVoice; break;
+		case EVoiceType::HighHeartBeatRate:SoundToPlay = MaleSoundData.HurtsVoice; break;
+		case EVoiceType::LowEnergy:SoundToPlay = nullptr; break;
+		case EVoiceType::FallingFormHeight:SoundToPlay = MaleSoundData.FallingFromHeightVoice; break;
+		case EVoiceType::Death:SoundToPlay = MaleSoundData.DeathVoice; break;
+		case EVoiceType::LowHealth:SoundToPlay = MaleSoundData.LowHealthBreathVoice; break;
+		default:SoundToPlay = MaleSoundData.NormalBreathSound; break;
+		}
 	if (CharacterGender == ECharacterGender::female)
 		switch (VoiceType)
 		{
@@ -46,7 +53,7 @@ USoundCue* UBFCharacterAudioComponent::GetPlaySound(EVoiceType VoiceType)
 		case EVoiceType::FallingFormHeight:SoundToPlay = FemaleSoundData.FallingFromHeightVoice; break;
 		case EVoiceType::Death:SoundToPlay = FemaleSoundData.DeathVoice; break;
 		case EVoiceType::LowHealth:SoundToPlay = FemaleSoundData.LowHealthBreathVoice; break;
-		default:SoundToPlay = nullptr; break;
+		default:SoundToPlay = FemaleSoundData.NormalBreathSound; break;
 		}
 	return SoundToPlay;
 }
@@ -56,8 +63,8 @@ void UBFCharacterAudioComponent::SetCharacterGender(ECharacterGender InGender)
 	this->CharacterGender = InGender;
 }
 
-void UBFCharacterAudioComponent::Play(float StartTime /* = 0.f */)
+void UBFCharacterAudioComponent::PlayVoice(EVoiceType VoiceType)
 {
 	Sound = GetPlaySound(VoiceType);
-	Super::Play(StartTime);
+	Super::Play(0.f);
 }

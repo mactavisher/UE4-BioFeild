@@ -51,6 +51,7 @@ void ABFWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
 	CreateWeaponWidgetInstances();
+	RecoilTimeLineComp->AddInterpFloat(RecoilCurve, RecoilPlayerDelegate);
 	SetupAttachments();
 }
 
@@ -82,7 +83,7 @@ void ABFWeaponBase::Fire()
 		SingleShot();
 		WeaponOwner->OnFire();
 		GetWorldTimerManager().SetTimer(ResetPlayerFireTimerHandle, this, &ABFWeaponBase::ResetPlayerFire, 1.0f, false, 0.3f);
-		GetWorldTimerManager().SetTimer(WeaponSpreadTimerHandle, this, &ABFWeaponBase::DescressSpread, GetWorld()->GetDeltaSeconds(), true, 0.1f);
+		GetWorldTimerManager().SetTimer(WeaponSpreadTimerHandle, this, &ABFWeaponBase::DescressSpread, GetWorld()->GetDeltaSeconds(), true, 0.001f);
 	}
 	if (FireMode == EFireMode::ThreeShot)
 	{
@@ -99,8 +100,7 @@ void ABFWeaponBase::Fire()
 			NotifyBurst();
 			if (RecoilCurve&&RecoilTimeLineComp)
 			{
-				RecoilTimeLineComp->AddInterpFloat(RecoilCurve, RecoilPlayerDelegate);
-				RecoilTimeLineComp->PlayFromStart();
+					RecoilTimeLineComp->PlayFromStart();
 			}
 		}
 	}
@@ -165,6 +165,7 @@ void ABFWeaponBase::BurstShotFinished()
 		CurrentSpread = 0.f;
 		if (RecoilTimeLineComp)
 		{
+			RecoilTimeLineComp->SetPlaybackPosition(0.f, true, true);
 			RecoilTimeLineComp->Stop();
 		}
 	}
@@ -182,6 +183,11 @@ void ABFWeaponBase::ReloadWeapon()
 		CrosshairWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
 		GetWorldTimerManager().SetTimer(ReloadWeaponTimerHandle, this, &ABFWeaponBase::FinishRealoadWeapon, 1.f, false, AnimDuration);
 	}
+}
+
+void ABFWeaponBase::ReceiveDetected()
+{
+
 }
 
 void ABFWeaponBase::FinishRealoadWeapon()
@@ -230,7 +236,7 @@ FHitResult ABFWeaponBase::TraceDetect()
 	const FVector TraceStart = WeaponOwner->GetCameraLocation();
 	const FVector TraceEnd = TraceStart + TraceDirection*TraceRange;
 	FHitResult TraceHit(ForceInit);
-	GetWorld()->LineTraceSingleByChannel(TraceHit, TraceStart, TraceEnd, ECollisionChannel::ECC_Visibility);
+	GetWorld()->LineTraceSingleByChannel(TraceHit, TraceStart, TraceEnd, ECollisionChannel::ECC_Camera);
 	//#if  WITH_EDITOR
 	//	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Green, false, 2.0f);
 	//	DrawDebugSphere(GetWorld(), TraceHit.Location, 5, 5, FColor::Red,false,2.0f);
@@ -267,8 +273,9 @@ void ABFWeaponBase::RecoilPlayer(float Value)
 	float TimeInPostion = RecoilTimeLineComp->GetPlaybackPosition();
 	if (PlayerController&&RecoilCurve)
 	{
-		Value = RecoilCurve->GetFloatValue(TimeInPostion);
+		Value = RecoilCurve->GetFloatValue(TimeInPostion)*0.01f;
 		PlayerController->AddPitchInput(Value);
+		UE_LOG(LogTemp, Warning, TEXT("Recoil value %f"), Value);
 	}
 }
 
@@ -344,6 +351,11 @@ void ABFWeaponBase::ToggleFireMode()
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("BurstShot"));
 	}
 # endif 
+}
+
+void ABFWeaponBase::ToggleAimMode()
+{
+	AimingMode = AimingMode== EAmingMode::Aim ? EAmingMode::ADS : EAmingMode::Aim;
 }
 
 void ABFWeaponBase::SetWeaponReadyForPickingUp()

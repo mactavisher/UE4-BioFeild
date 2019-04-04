@@ -12,10 +12,10 @@ class ABFBaseCharacter;
 class ABFVoice;
 class UBFSkeletalMeshComponent;
 class USoundCue;
+
 /**
  * 
  */
-
 USTRUCT(BlueprintType)
 struct  FCharacterSoundData
 {
@@ -35,6 +35,9 @@ struct  FCharacterSoundData
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Voice|Male")
 		USoundCue* LowHealthBreathVoice;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Voice|Male")
+		USoundCue* NormalBreathSound;
 };
 UCLASS()
 class BIOFEILD_API UBFCharacterAudioComponent : public UAudioComponent
@@ -48,14 +51,16 @@ class BIOFEILD_API UBFCharacterAudioComponent : public UAudioComponent
 
 private:
 
+	UPROPERTY()
 	ABFBaseCharacter* CharacterOwner;
+
+	UPROPERTY()
+		uint8 bIsZombie : 1;
 
 	/** cached character skeletal mesh components */
 	UBFSkeletalMeshComponent* CharacterMesh;
 
 	ECharacterGender CharacterGender;
-
-	EVoiceType VoiceType;
 
 protected:
 	// Called when the game starts
@@ -70,7 +75,5 @@ public:
 
 	virtual void SetCharacterGender(ECharacterGender InGender);
 
-	virtual void SetVoiceType(EVoiceType VoiceType) { this->VoiceType = VoiceType; }
-
-	virtual void Play(float StartTime /* = 0.f */)override;
+	virtual void PlayVoice(EVoiceType VoiceType);
 };

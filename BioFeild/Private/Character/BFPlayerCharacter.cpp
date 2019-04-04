@@ -22,7 +22,7 @@ ABFPlayerCharacter::ABFPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	CameraComp = ObjectInitializer.CreateDefaultSubobject<UCameraComponent>(this, TEXT("CameraComp"));
 	CameraArmComp = ObjectInitializer.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("SprintArmComp"));
 	InventoryComponent = ObjectInitializer.CreateDefaultSubobject<UBFInventoryComponent>(this, TEXT("InventoryComp"));
-	AimingFOVTimeLineComponent=ObjectInitializer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("AimingFOVTimelineComp"));
+	AimingFOVTimeLineComponent = ObjectInitializer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("AimingFOVTimelineComp"));
 	AimingFOVTimeLineComponent->SetComponentTickEnabled(true);
 	CameraArmComp->TargetArmLength = 110.f;
 	CameraArmComp->bUsePawnControlRotation = true;
@@ -52,7 +52,7 @@ void ABFPlayerCharacter::Tick(float DeltaTime)
 	{
 		CalculateTurnData();
 	}
-	TraceDetect();
+	DetectItem();
 	//AimingFOVTimeLineComponent->TickComponent(DeltaTime, ELevelTick::LEVELTICK_TimeOnly, NULL);
 }
 
@@ -87,6 +87,7 @@ void ABFPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	PlayerInputComponent->BindAction("EquipSlot4", IE_Pressed, this, &ABFPlayerCharacter::EquipSlot4Weapon);
 	PlayerInputComponent->BindAction("Suicide", IE_Pressed, this, &ABFPlayerCharacter::Suicide);
 	PlayerInputComponent->BindAction("ToggleFireMode", IE_Pressed, this, &ABFPlayerCharacter::ToggleFireMode);
+	PlayerInputComponent->BindAction("ToggleAimMode", IE_Pressed, this, &ABFPlayerCharacter::ToggleAimMode);
 	PlayerInputComponent->BindAction("DropWeapon", IE_Pressed, this, &ABFPlayerCharacter::DropCurrentWeapon);
 	PlayerInputComponent->BindAction("CameraStyle", IE_Pressed, this, &ABFPlayerCharacter::FreeStyleCamera);
 	PlayerInputComponent->BindAction("CameraStyle", IE_Pressed, this, &ABFPlayerCharacter::FixedStyleCamera);
@@ -256,10 +257,28 @@ void ABFPlayerCharacter::StopHoldBreath()
 
 }
 
+void ABFPlayerCharacter::ToggleAimMode()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->ToggleAimMode();
+	}
+}
+
+void ABFPlayerCharacter::NotifyItemDetected(AActor* DetectedItem)
+{
+	/** let's  */
+	if (DetectedItem->GetClass()->IsChildOf(ABFWeaponBase::StaticClass()))
+	{
+	    ABFWeaponBase* const DetectedWeapon = Cast<ABFWeaponBase>(DetectedItem);
+		DetectedWeapon->ReceiveDetected();
+	}
+}
+
 void ABFPlayerCharacter::EquipSlot1Weapon()
 {
 	WeaponToEquip = InventoryComponent->GiveSlotWeapon(0);
-	if (CurrentWeapon&&WeaponToEquip!=WeaponToEquip)
+	if (CurrentWeapon&&WeaponToEquip != WeaponToEquip)
 	{
 		StopAnimMontage(CurrentWeapon->GetWeaponAnim().ReloadAnim);
 		UnEquipWeapon();
@@ -387,34 +406,34 @@ void ABFPlayerCharacter::FixedStyleCamera()
 	CharacterTurnData.bShouldTurn = true;
 }
 
-void ABFPlayerCharacter::TraceDetect()
+void ABFPlayerCharacter::DetectItem()
 {
 	const float TraceLength = 10000.f;
 	FHitResult TraceHit(ForceInit);
 	GetWorld()->LineTraceSingleByChannel(TraceHit, CameraComp->GetComponentLocation(), CameraComp->GetComponentLocation() + CameraComp->GetForwardVector()*TraceLength, ECollisionChannel::ECC_Camera);
 	if (TraceHit.bBlockingHit)
 	{
-		CenterTraceDetect.bHitSomething = true;
-		CenterTraceDetect.HitActor = TraceHit.GetActor();
+		DetectedItemInfo.bHitSomething = true;
+		DetectedItemInfo.HitActor = TraceHit.GetActor();
 		if (TraceHit.Actor != nullptr&&TraceHit.Actor->GetClass()->IsChildOf(ABFZombie::StaticClass()))
 		{
 			ABFZombie* HitZombie = Cast<ABFZombie>(TraceHit.GetActor());
 			if (!HitZombie->GetCharacterIsDead())
 			{
-				CenterTraceDetect.bIsThreat = true;
+				DetectedItemInfo.bIsThreat = true;
 			}
 			else {
-				CenterTraceDetect.bIsThreat = false;
+				DetectedItemInfo.bIsThreat = false;
 			}
 		}
 		else {
-			CenterTraceDetect.bIsThreat = false;
+			DetectedItemInfo.bIsThreat = false;
 		}
 	}
 	else {
-		CenterTraceDetect.bHitSomething = false;
-		CenterTraceDetect.HitActor = nullptr;
-		CenterTraceDetect.bIsThreat = false;
+		DetectedItemInfo.bHitSomething = false;
+		DetectedItemInfo.HitActor = nullptr;
+		DetectedItemInfo.bIsThreat = false;
 	}
 	//#if WITH_EDITOR
 	//	DrawDebugLine(GetWorld(), CameraComp->GetComponentLocation(), CameraComp->GetComponentLocation()+CameraComp->GetForwardVector()*TraceLength,FColor::Green,false,0.05f);
@@ -454,7 +473,7 @@ void ABFPlayerCharacter::StopADS_Implementation()
 
 void ABFPlayerCharacter::ADS_Implementation()
 {
-	const FVector IronSightLocation = CharacterMesh->GetSocketLocation(CharacterMesh->SocketNames.IronSightSocket);
+	const FVector IronSightLocation = CharacterMesh->GetSocketLocation(CurrentWeapon->WeaponMeshComponent->CameraSocket);
 	CameraComp->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, CharacterMesh->SocketNames.IronSightSocket);
 	CharacterMesh->GetCurrentAnimInstance()->bisADS = true;
 }
@@ -475,7 +494,7 @@ void ABFPlayerCharacter::StopAiming_Implementation()
 			}
 			CharacterMovement->SetDefaultMaxWalkSpeed();
 		}
-			AimingFOVTimeLineComponent->Reverse();
+		AimingFOVTimeLineComponent->Reverse();
 	}
 }
 

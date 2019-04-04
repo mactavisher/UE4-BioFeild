@@ -366,4 +366,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter|Death")
 		virtual void HandleDeath();
+
+	UFUNCTION()
+		virtual void OnHealthReduced(float ReduceAmount);
 };

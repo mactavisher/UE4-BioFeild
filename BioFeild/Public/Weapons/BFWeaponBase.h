@@ -428,6 +428,8 @@ public:
 	/** reload weapon */
 	virtual void ReloadWeapon();
 
+	virtual void ReceiveDetected();
+
 	/** finish reload weapon , this should be the place to reload ammo  */
 	virtual void FinishRealoadWeapon();
 
@@ -468,6 +470,8 @@ public:
 
 	/** switch between fire modes */
 	virtual void ToggleFireMode();
+
+	virtual void ToggleAimMode();
 
 	/** set this weapon  can be pick up  */
 	virtual void SetWeaponReadyForPickingUp();

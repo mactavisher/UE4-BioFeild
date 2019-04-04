@@ -2,6 +2,7 @@
 
 #include "BFHealthComponent.h"
 #include "Character/BFBaseCharacter.h"
+#include "BFComponents/BFCharacterAudioComponent.h"
 
 UBFHealthComponent::UBFHealthComponent(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -43,17 +44,18 @@ void UBFHealthComponent::SetHealth(float Health)
 
 void UBFHealthComponent::ReduceHealth(float ReduceAmount)
 {
-	if (!OwnerCharacter->GetCharacterIsDead())
+	if (!OwnerCharacter->GetCharacterIsDead()&&ReduceAmount>=0.f)
 	{
 		CurrentHealth = CurrentHealth - ReduceAmount;
+		OnHealthReduced.Broadcast(ReduceAmount);
 		//make sure that character's current health won't go below 0
 		if (CheckIsLowHealth() && CurrentHealth >= 0)
 		{
 			OnLowHealth.Broadcast();
 		}
-		if (CurrentHealth <= 0)
+		if (CurrentHealth <= 0.f)
 		{
-			CurrentHealth = 0;
+			CurrentHealth = 0.f;
 			OnCharacterShouldDie.Broadcast();
 		}
 	}
