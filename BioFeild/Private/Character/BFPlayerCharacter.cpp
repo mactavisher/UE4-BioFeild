@@ -265,14 +265,9 @@ void ABFPlayerCharacter::ToggleAimMode()
 	}
 }
 
-void ABFPlayerCharacter::NotifyItemDetected(AActor* DetectedItem)
+void ABFPlayerCharacter::NotifyItemDetected(ABFInventoryItem* DetectedItem)
 {
-	/** let's  */
-	if (DetectedItem->GetClass()->IsChildOf(ABFWeaponBase::StaticClass()))
-	{
-	    ABFWeaponBase* const DetectedWeapon = Cast<ABFWeaponBase>(DetectedItem);
-		DetectedWeapon->ReceiveDetected();
-	}
+	
 }
 
 void ABFPlayerCharacter::EquipSlot1Weapon()
@@ -415,25 +410,43 @@ void ABFPlayerCharacter::DetectItem()
 	{
 		DetectedItemInfo.bHitSomething = true;
 		DetectedItemInfo.HitActor = TraceHit.GetActor();
-		if (TraceHit.Actor != nullptr&&TraceHit.Actor->GetClass()->IsChildOf(ABFZombie::StaticClass()))
+		if (TraceHit.Actor!= nullptr)
 		{
-			ABFZombie* HitZombie = Cast<ABFZombie>(TraceHit.GetActor());
-			if (!HitZombie->GetCharacterIsDead())
+			DetectedItemInfo.bHitSomething = true;
+			if (TraceHit.Actor->GetClass()->IsChildOf(ABFZombie::StaticClass()))
 			{
-				DetectedItemInfo.bIsThreat = true;
+				ABFZombie* HitZombie = Cast<ABFZombie>(TraceHit.GetActor());
+				if (!HitZombie->GetCharacterIsDead())
+				{
+					DetectedItemInfo.bIsThreat = true;
+				}
+				else {
+					DetectedItemInfo.bIsThreat = false;
+				}
 			}
-			else {
+			if (TraceHit.Actor->GetClass()->IsChildOf(ABFInventoryItem::StaticClass()))
+			{
+				DetectedItemInfo.HitItem = Cast<ABFInventoryItem>(TraceHit.GetActor());
+				DetectedItemInfo.HitItem->ReceiveDetected(this, this, this->GetPlayerController());
+				DetectedItemInfo.bHitInventoryItem = true;
+				DetectedItemInfo.bHitSomething = true;
 				DetectedItemInfo.bIsThreat = false;
 			}
 		}
 		else {
+			DetectedItemInfo.bHitSomething = false;
+			DetectedItemInfo.HitActor = nullptr;
 			DetectedItemInfo.bIsThreat = false;
+			DetectedItemInfo.bHitInventoryItem = false;
+			DetectedItemInfo.HitItem = nullptr;
 		}
 	}
 	else {
 		DetectedItemInfo.bHitSomething = false;
 		DetectedItemInfo.HitActor = nullptr;
 		DetectedItemInfo.bIsThreat = false;
+		DetectedItemInfo.bHitInventoryItem = false;
+		DetectedItemInfo.HitItem = nullptr;
 	}
 	//#if WITH_EDITOR
 	//	DrawDebugLine(GetWorld(), CameraComp->GetComponentLocation(), CameraComp->GetComponentLocation()+CameraComp->GetForwardVector()*TraceLength,FColor::Green,false,0.05f);

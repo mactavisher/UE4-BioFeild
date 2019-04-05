@@ -7,6 +7,7 @@
 #include "Projectile/BFProjectile.h"
 #include "EngineMinimal.h"
 #include "Animation/BFAnimInstance.h"
+#include "Components/BillboardComponent.h"
 #include "BFComponents/BFCharacterAudioComponent.h"
 #include "Character/BFPlayerController.h"
 
@@ -16,6 +17,7 @@ ABFBaseCharacter::ABFBaseCharacter(const FObjectInitializer& ObjectInitializer) 
 	PrimaryActorTick.bCanEverTick = false;
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UBFHealthComponent>(this, TEXT("HealthComp"));
 	CharacterVoiceComponent = ObjectInitializer.CreateDefaultSubobject<UBFCharacterAudioComponent>(this, TEXT("AudioComp"));
+	CharacterBillBoardComp = ObjectInitializer.CreateDefaultSubobject<UBillboardComponent>(this, TEXT("BillBordComp"));
 }
 
 void ABFBaseCharacter::BeginPlay()
@@ -33,6 +35,7 @@ void ABFBaseCharacter::PostInitializeComponents()
 	CharacterMesh = Cast<UBFSkeletalMeshComponent>(GetMesh());
 	CharacterMesh->SetCharacterOwner(this);
 	CharacterVoiceComponent->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, CharacterMesh->SocketNames.MouthSocket);
+	CharacterBillBoardComp->SetupAttachment(CharacterMesh, CharacterMesh->SocketNames.BillBoardSocket);
 	CharacterState = ECharacterState::Idle;
 	CharacterGender = ECharacterGender::male;
 	HealthComponent->SetOwnerCharacter(this);
@@ -163,6 +166,7 @@ void ABFBaseCharacter::HandleDeath()
 	CharacterMesh->SetSimulatePhysics(true);
 	CharacterMesh->SetComponentTickEnabled(true);
 	GetBFCharacterMovement()->StopMovementImmediately();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	bIsDead = true;
 	PrimaryActorTick.bCanEverTick = false;
 	StartDestoryCharacter();

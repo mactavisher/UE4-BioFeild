@@ -21,6 +21,7 @@ class UBFCharacterMovementComponent;
 class ABFPlayerController;
 class UAnimMontage;
 class UBFCharacterAudioComponent;
+class UBillboardComponent;
 
 /** specify a character's current state */
 namespace ECharacterState
@@ -49,7 +50,7 @@ struct FCharacterTurnData {
 
 	GENERATED_USTRUCT_BODY()
 
-		UPROPERTY(VisibleAnywhere, Category = "Character|TurnDirection")
+	UPROPERTY(VisibleAnywhere, Category = "Character|TurnDirection")
 		ECharacterTurnType CharacterTurnType;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character|TurnDirection")
@@ -74,9 +75,8 @@ USTRUCT(BlueprintType)
 struct FCharacterEnergyData {
 
 	GENERATED_USTRUCT_BODY()
-
-		/** character's energy  */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BFCharacter")
+     /** character's energy  */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BFCharacter")
 		float  Energy;
 
 	/** character's energy  */
@@ -108,9 +108,8 @@ USTRUCT(BlueprintType)
 struct FCharacterHeartBeatData {
 
 	GENERATED_USTRUCT_BODY()
-
-		/** character's heart beat rate */
-		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BFCharacter")
+    /** character's heart beat rate */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BFCharacter")
 		float  HeartBeatRate;
 
 	/** character's current heart beat rate */
@@ -159,7 +158,7 @@ USTRUCT(BlueprintType)
 struct FCharacterTurnAnim {
 	GENERATED_USTRUCT_BODY()
 
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BFCharacter|Animations")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BFCharacter|Animations")
 		UAnimMontage* TurnLeft45Anim;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BFCharacter|Animations")
@@ -181,9 +180,11 @@ class BIOFEILD_API ABFBaseCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HealthComp", meta = (AllowPrivateAccess = "true"))
 		UBFHealthComponent* HealthComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HealthComp", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AudioComp", meta = (AllowPrivateAccess = "true"))
 		UBFCharacterAudioComponent* CharacterVoiceComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HealthComp", meta = (AllowPrivateAccess = "true"))
+		UBillboardComponent* CharacterBillBoardComp;
 	/*particle effect when character spawns or re_spawns */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Effects|Particle")
 		UParticleSystem*SpawnFX;

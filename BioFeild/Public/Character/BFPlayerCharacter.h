@@ -6,6 +6,7 @@
 #include "Character/BFBaseCharacter.h"
 #include "Character/BFPlayerController.h"
 #include "Camera/CameraComponent.h"
+#include "Items/BFInventoryItem.h"
 #include "Animation/BFAnimInstance.h"
 #include "Components/TimelineComponent.h"
 #include "BFPlayerCharacter.generated.h"
@@ -36,10 +37,25 @@ struct FItemTraceDetectResult {
 		uint8 bHitSomething:1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		uint8 bHitInventoryItem : 1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		class AActor* HitActor;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		class ABFInventoryItem* HitItem;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		uint8  bIsThreat:1;
+
+	FItemTraceDetectResult()
+	{
+		bHitSomething = false;
+		bHitInventoryItem = false;
+		HitActor = nullptr;
+		HitItem = nullptr;
+		bIsThreat = false;
+	}
 };
 
 /**
@@ -167,7 +183,7 @@ protected:
 
 	virtual void ToggleAimMode();
 
-	virtual void NotifyItemDetected(AActor* DetectedItem);
+	virtual void NotifyItemDetected(ABFInventoryItem* DetectedItem);
 
 	///////////////////////////////////////////
 	/// equip Slot Weapons

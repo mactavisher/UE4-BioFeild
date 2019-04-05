@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Items/BFInventoryItem.h"
 #include "BFAttachmentBase.generated.h"
 
 class UStaticMeshComponent;
@@ -25,7 +26,7 @@ enum class EAttachmentType :uint8
 };
 
 UCLASS()
-class BIOFEILD_API ABFAttachmentBase : public AActor
+class BIOFEILD_API ABFAttachmentBase : public ABFInventoryItem
 {
 	GENERATED_UCLASS_BODY()
 	

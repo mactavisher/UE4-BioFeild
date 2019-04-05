@@ -27,6 +27,7 @@ ABFWeaponBase::ABFWeaponBase(const FObjectInitializer& ObjectInitailizer) :Super
 	WeaponMeshComponent = ObjectInitailizer.CreateDefaultSubobject<UBFWeaponMeshComponent>(this, TEXT("Weapon Mesh"));
 	FOVTimeLineComp = ObjectInitailizer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("ZoomingTimeLineComp"));
 	RecoilTimeLineComp = ObjectInitailizer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("RecoilTimeLineComp"));
+	RecoilTimeLineComp->SetIgnoreTimeDilation(false);
 	RootComponent = WeaponMeshComponent;
 	InteractBox = ObjectInitailizer.CreateDefaultSubobject<UBoxComponent>(this, TEXT("Interact Comp"));
 	InteractBox->SetBoxExtent(FVector(20.f, 20.f, 20.f), true);
@@ -60,7 +61,6 @@ void ABFWeaponBase::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	InteractBox->OnComponentBeginOverlap.AddDynamic(this, &ABFWeaponBase::OnWeaponOverlap);
 }
-
 
 FVector ABFWeaponBase::GetFinalProjectileDirection(FVector& BaseDirection)
 {
@@ -139,6 +139,10 @@ void ABFWeaponBase::SingleShot()
 		{
 			WeaponSpreadData.WeaponSpreadBase = 0.f;
 			NotifyBurstStoped();
+			if (RecoilTimeLineComp->IsPlaying())
+			{
+				RecoilTimeLineComp->Stop();
+			}
 		}
 #if WITH_EDITOR
 		UE_LOG(LogTemp, Warning, TEXT("current weapon spread  is %f"), CurrentSpread);
@@ -153,7 +157,6 @@ void ABFWeaponBase::SingleShot()
 		ShootCount = 0;
 	}
 }
-
 
 void ABFWeaponBase::BurstShotFinished()
 {
@@ -186,6 +189,17 @@ void ABFWeaponBase::ReloadWeapon()
 }
 
 void ABFWeaponBase::ReceiveDetected()
+{
+
+}
+
+void ABFWeaponBase::ReceiveDetected(class AActor* DetectedBy, class ABFBaseCharacter* DectectedCharacter, class ABFPlayerController* DectedPlayer)
+{
+	Super::ReceiveDetected(DetectedBy, DectectedCharacter, DectedPlayer);
+	WeaponMeshComponent->bRenderCustomDepth = true;
+}
+
+void ABFWeaponBase::NotifyReaction(class AActor* NotifiedActor)
 {
 
 }
@@ -407,14 +421,12 @@ void ABFWeaponBase::SetWeaponOwner(ABFPlayerCharacter* NewOwner)
 
 void ABFWeaponBase::PlayFireEffects()
 {
-	//USoundCue* FireSoundToPlay = nullptr;
 	USoundCue* FireSoundToPlay = SilencerSlot.AttachmentInstance == nullptr ? FireSound : Cast<ABFAttachment_Silencer>(SilencerSlot.AttachmentInstance)->GetSilencerFireSound();
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), FireSoundToPlay, WeaponMeshComponent->GetSocketLocation(WeaponMeshComponent->MuzzleFlashSocket));
 	if (MuzzleFlash)
 	{
 		const FName MuzzleFlashSocket = WeaponMeshComponent->MuzzleFlashSocket;
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, WeaponMeshComponent->GetSocketTransform(MuzzleFlashSocket), true);
-		//UGameplayStatics::SpawnEmitterAttached(MuzzleFlash, WeaponMeshComponent, MuzzleFlashSocket, WeaponMeshComponent->GetSocketLocation(MuzzleFlashSocket), WeaponMeshComponent->GetSocketRotation(MuzzleFlashSocket), EAttachLocation::SnapToTarget, true);
 	}
 	if (CameraShakeClass)
 	{
@@ -422,16 +434,6 @@ void ABFWeaponBase::PlayFireEffects()
 		Controller->ClientPlayCameraShake(CameraShakeClass);
 	}
 }
-
-//void ABFWeaponBase::SpawnEmptyMagazine()
-//{
-	//FActorSpawnParameters MagazineMeshSpawnParams();
-	//MagazineMeshSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	//if (EmptyMagazineClass)
-	//{
-//		ABFEmptyMagazine* EmptyMagazine = GetWorld()->SpawnActor<ABFEmptyMagazine>(EmptyMagazineClass);
-	//}
-//}
 
 void ABFWeaponBase::SetAmmoLeft(const int32 Ammo)
 {
@@ -553,7 +555,7 @@ void ABFWeaponBase::ReciveFinishEquiping()
 		}
 		if (ReloadingWidgetInstance)
 		{
-			ReloadingWidgetInstance->AddToViewport(0);
+			ReloadingWidgetInstance->AddToViewport(0); 
 		}
 		if (HitTargetFeedBackWidgetInstance)
 		{

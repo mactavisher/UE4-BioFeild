@@ -45,6 +45,9 @@ struct FSocketNames {
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SocketName")
 		FName IronSightSocket;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SocketName")
+		FName BillBoardSocket;
 };
 
 /**

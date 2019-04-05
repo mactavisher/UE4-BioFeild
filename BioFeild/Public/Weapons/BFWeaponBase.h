@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "BioFeild.h"
+#include "Items/BFInventoryItem.h"
 #include "Components/TimelineComponent.h"
 #include "Engine/Canvas.h"
 #include "BFWeaponBase.generated.h"
@@ -187,7 +188,7 @@ struct FWeaponSpreadData
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponOverlapSignature, ABFWeaponBase*, Weapon);
 
 UCLASS()
-class BIOFEILD_API ABFWeaponBase : public AActor
+class BIOFEILD_API ABFWeaponBase : public ABFInventoryItem
 {
 	GENERATED_UCLASS_BODY()
 
@@ -309,6 +310,9 @@ class BIOFEILD_API ABFWeaponBase : public AActor
 	/** texture for cross hair part */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 		UTexture2D* WeaponInfoWidgetClassTexture;
+
+	UPROPERTY()
+		UTexture2D* WeaponIcon;
 
 	/** widget to show when hit target as a feed back ui */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
@@ -613,4 +617,8 @@ public:
 	virtual void SetIsMenuMode(bool IsInMenuMode);
 
 	virtual bool GetIsInMenuMode()const { return bIsInMenuMode; }
+
+	virtual void ReceiveDetected(class AActor* DetectedBy, class  ABFBaseCharacter* DectectedCharacter, class ABFPlayerController* DectedPlayer)override;
+
+	virtual void NotifyReaction(class AActor* NotifiedActor)override;
 };
