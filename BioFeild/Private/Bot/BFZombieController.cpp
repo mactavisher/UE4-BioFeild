@@ -36,17 +36,20 @@ void ABFZombieController::BeginPlay()
 
 void ABFZombieController::WalkTo()
 {
-	OnWalk();
+	//const FName EnemyLocationkey = "EnemyLocation";
+	//const FVector EnemyLocation = GetBlackboardComponent()->GetValueAsVector(EnemyLocationkey);
+	const FVector ZombieLocation = PossessedZombie->GetActorLocation();
+	PossessedZombie->AddMovementInput(FVector(0.f,0.f,0.f) - ZombieLocation, 1.0f, true);
 }
 
 void ABFZombieController::ChargeTo()
 {
-	OnCharge();
+	
 }
 
 void ABFZombieController::CrawlerTo()
 {
-	onCrawler();
+
 }
 
 void ABFZombieController::AttackPlayer()
@@ -56,7 +59,6 @@ void ABFZombieController::AttackPlayer()
 	{
 		PossessedZombie->SetIsZombieAttacking(true);
 		PossessedZombie->PlayAnimMontage(PossessedZombie->AttackAnim, 1.0f, NAME_None);
-		OnAttack();
 	}
 }
 
@@ -64,7 +66,6 @@ void ABFZombieController::StopMovement()
 {
 	PossessedZombie->SetZombieCurrentState(EZombieState::Idle);
 	Super::StopMovement();
-	OnStopMoveMent();
 }
 
 bool ABFZombieController::DecideToTrackingPlayer()
@@ -90,6 +91,12 @@ void ABFZombieController::LostPlayer()
 {
 	PlayerEnemy = nullptr;
 	bLostTarget = true;
+	const FName HasEnemyKey = TEXT("CanSeeEnemy");
+	const FName EnemyLocationKey = TEXT("EnemyLocation");
+	const FName EnemyKey = TEXT("Enemy");
+	GetBlackboardComponent()->SetValueAsBool(HasEnemyKey, false);
+	GetBlackboardComponent()->SetValueAsObject(EnemyKey, nullptr);
+	GetBlackboardComponent()->SetValueAsVector(EnemyLocationKey,FVector(ForceInit));
 	if (GetWorldTimerManager().TimerExists(LostPlayerTimerHanle) && GetWorldTimerManager().IsTimerActive(LostPlayerTimerHanle))
 	{
 		GetWorldTimerManager().ClearTimer(LostPlayerTimerHanle);
@@ -126,6 +133,8 @@ void ABFZombieController::Possess(APawn* InPawn)
 		PossessedZombie->OnSeePlayer.AddDynamic(this, &ABFZombieController::ReceiveZombieSeePlayer);
 		PossessedZombie->OnHearPlayer.AddDynamic(this, &ABFZombieController::ReceiveZombieHearPlayer);
 		PossessedZombie->OnZombieDead.AddDynamic(this, &ABFZombieController::OnZombieDead);
+		PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 200.f;
+		WalkTo();
 		if (PossessedZombie->ZombieBehaviour)
 		{
 			RunBehaviorTree(PossessedZombie->ZombieBehaviour);

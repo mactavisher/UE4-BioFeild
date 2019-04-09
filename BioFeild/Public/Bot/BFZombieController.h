@@ -117,21 +117,6 @@ protected:
 	/** call to decide whether give up this target or tracking it each time sees or hear something  */
 	virtual bool DecideToTrackingPlayer();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
-		void OnWalk();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
-		void OnCharge();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
-		void onCrawler();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
-		void OnAttack();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Events")
-		void OnStopMoveMent();
-
 	void PostInitializeComponents()override;
 
 	/** called when zombie lost the player as target */
