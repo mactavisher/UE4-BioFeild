@@ -3,11 +3,13 @@
 #include "BFZombieController.h"
 #include "Bot/BFZombie.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Character/BFPlayerCharacter.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineMinimal.h"
 #include "Engine/TargetPoint.h"
+#include "Engine/Engine.h"
 #include "Pickups/BFPickup_Ammo.h"
 #include "Pickups/BFPickupBase.h"
 #include "TimerManager.h"
@@ -19,6 +21,7 @@
 ABFZombieController::ABFZombieController(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	BrainComponent = BehaviorTreeComponent = ObjectInitializer.CreateDefaultSubobject<UBehaviorTreeComponent>(this, TEXT("Behaviour Tree"));
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void ABFZombieController::Tick(float DeltaTime)
@@ -131,7 +134,11 @@ void ABFZombieController::Possess(APawn* InPawn)
 
 void ABFZombieController::UnPossess()
 {
+	BehaviorTreeComponent->StopTree(EBTStopMode::Safe);
 	Super::UnPossess();
+#if WITH_EDITOR
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("zombie is dead, and i do not want to controll a dead zombie..!"));
+#endif
 }
 
 bool ABFZombieController::CanSeeEnemy() const
@@ -190,8 +197,10 @@ void ABFZombieController::ReceiveZombieHearPlayer(ABFPlayerCharacter* PlayerChar
 {
 	ABFPlayerController* Player = PlayerCharacter->GetPlayerController();
 	//only set PlayerEnemy if it null or Player is not same as PlayerEnemy 
+	GetBlackboardComponent()->SetValueAsBool("HasHearNoise", true);
+	GetBlackboardComponent()->SetValueAsVector("NoiseLocation", Player->GetPoccessedPlayerCharacter()->GetActorLocation());
 #if WITH_EDITOR
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("I hear something!"));
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("I hear something................................................!"));
 #endif
 	if (PlayerEnemy == nullptr&&PlayerEnemy != Player)
 	{

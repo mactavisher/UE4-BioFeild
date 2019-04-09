@@ -5,11 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
 #include "BioFeild.h"
+#include "GameMode/BFGameModeBase.h"
 #include "BFGameMode_Evasion.generated.h"
 
-
-class ABFZombieController;
 class ABFPlayerController;
+class ABFZombieController;
 /** game difficulty types */
 UENUM(BlueprintType)
 enum class EGameDifficulty :uint8 {
@@ -35,7 +35,7 @@ namespace EGameLevel
 */
 
 UCLASS()
-class BIOFEILD_API ABFGameMode_Evasion : public AGameMode
+class BIOFEILD_API ABFGameMode_Evasion : public ABFGameModeBase
 {
 
 	GENERATED_UCLASS_BODY()
@@ -57,11 +57,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GameConfig")
 		EGameDifficulty GameDifficulty;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Rules")
-		float TeamDamageModifier;
-
-
 
 private:
 	/** enable team damage? turned off by default */
@@ -122,5 +117,5 @@ public:
 
 	virtual void FinishCurrentWave();
 
-	virtual void ModifyDamage(float& Outdamage, AController* DamageCauser, AController*DamagedPlayer);
+	virtual void ModifyDamage(float& Outdamage, AController* DamageCauser, AController*DamagedPlayer)override;
 };

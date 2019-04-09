@@ -37,7 +37,7 @@ ABFWeaponBase::ABFWeaponBase(const FObjectInitializer& ObjectInitailizer) :Super
 	ShootCount = 0;
 	canBePickedUp = false;
 	CurrentSpread = 0.f;
-	FireLoudness = 5.0f;
+	FireLoudness = 500.0f;
 	NoiseRadius = 3000.f;
 	WeaponState = EWeaponState::Idle;
 	AimingMode = EAmingMode::Aim;

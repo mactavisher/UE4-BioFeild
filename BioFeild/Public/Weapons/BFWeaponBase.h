@@ -148,7 +148,7 @@ struct FWeaponConfigData {
 	/** default value */
 	FWeaponConfigData()
 	{
-		AmmoPerClip = 30;
+		AmmoPerClip = 100;
 		MaxAmmo = 120;
 		TimeBetweenShots = 0.12f;
 		BaseDamage = 35.f;
@@ -195,7 +195,6 @@ class BIOFEILD_API ABFWeaponBase : public ABFInventoryItem
 		/** create  weapon mesh component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WeponMesh", meta = (AllowPrivateAccess = "true"))
 		UBFWeaponMeshComponent*  WeaponMeshComponent;
-
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WeponMesh", meta = (AllowPrivateAccess = "true"))
 		UBoxComponent* InteractBox;

@@ -3,6 +3,7 @@
 #include "BFZombie.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/PawnSensingComponent.h"
 #include "BrainComponent.h"
 #include "Components/BillboardComponent.h"
@@ -19,7 +20,6 @@ ABFZombie::ABFZombie(const FObjectInitializer& ObjectInitializer) :Super(ObjectI
 	RightHandDamage = ObjectInitializer.CreateDefaultSubobject<UBoxComponent>(this, TEXT("Damage|RightHand"));
 	LeftHandDamage->SetBoxExtent(FVector(40.0f, 5.0f, 5.0f));
 	RightHandDamage->SetBoxExtent(FVector(40.0f, 5.0f, 5.0f));
-	BillBoardComp = ObjectInitializer.CreateDefaultSubobject<UBillboardComponent>(this, TEXT("BillBoardComp"));
 	/** turn of damage detect by defaults, only when attack will turn on this collision */
 	DisableLeftHandDamage();
 	DisableRighthandDamage();
@@ -29,6 +29,7 @@ ABFZombie::ABFZombie(const FObjectInitializer& ObjectInitializer) :Super(ObjectI
 	RightHandDamage->OnComponentEndOverlap.AddDynamic(this, &ABFZombie::HandleRightHandDamageEndOverlap);
 	ZombieSensingComp->OnSeePawn.AddDynamic(this, &ABFZombie::OnSeePawn);
 	ZombieSensingComp->OnHearNoise.AddDynamic(this, &ABFZombie::OnHearNoise);
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void ABFZombie::BeginPlay()
@@ -36,6 +37,11 @@ void ABFZombie::BeginPlay()
 	Super::BeginPlay();
 	LeftHandDamage->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, LeftHandDamageSocket);
 	RightHandDamage->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, RightHandDamageSocket);
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+	// get forward vector
+	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	AddMovementInput(Direction, 100.f);
 }
 
 void ABFZombie::PostInitializeComponents()
@@ -149,9 +155,13 @@ void ABFZombie::HandleRightHandDamageEndOverlap(UPrimitiveComponent* OverlappedC
 
 void ABFZombie::HandleDeath()
 {
-	DisableRighthandDamage();
-	DisableRighthandDamage();
 	Super::HandleDeath();
+	bIsDead = true;
+	DisableRighthandDamage();
+	DisableRighthandDamage();
+	ZombieSensingComp->Deactivate();
+	//ZombieController->GetBlackboardComponent()->SetValueAsBool("IsSelfDead", true);
+	ZombieController->SetIsDead(true);
 }
 
 float ABFZombie::DecideHandsDamage(const FHitResult & SweepResult, ABFPlayerCharacter* PlayerCharacter, bool bFromSweep)

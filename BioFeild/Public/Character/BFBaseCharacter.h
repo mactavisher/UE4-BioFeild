@@ -108,6 +108,7 @@ USTRUCT(BlueprintType)
 struct FCharacterHeartBeatData {
 
 	GENERATED_USTRUCT_BODY()
+
     /** character's heart beat rate */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BFCharacter")
 		float  HeartBeatRate;
@@ -116,11 +117,11 @@ struct FCharacterHeartBeatData {
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BFCharacter")
 		float  CurrentHeartBeatRate;
 
-	/** should consider character heart beat rate in gameplay? */
+	/** should consider character heart beat rate in game play? */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BFCharacter")
 		bool  bShouldCalHeartBeatRate;
 
-	/** should consider character heart beat rate in gameplay? */
+	/** should consider character heart beat rate in game play? */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BFCharacter")
 		bool bHasReachPeak;
 
@@ -174,7 +175,7 @@ struct FCharacterTurnAnim {
 UCLASS()
 class BIOFEILD_API ABFBaseCharacter : public ACharacter
 {
-		GENERATED_UCLASS_BODY()
+	GENERATED_UCLASS_BODY()
 
 		/*create health component for character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HealthComp", meta = (AllowPrivateAccess = "true"))
@@ -227,7 +228,7 @@ protected:
 
 	/** projectile that hit this character */
 	UPROPERTY()
-		ABFProjectile* LastHitProjectile;
+	ABFProjectile* LastHitProjectile;
 
 	/** Voice Type declare */
 	EVoiceType VoiceType;

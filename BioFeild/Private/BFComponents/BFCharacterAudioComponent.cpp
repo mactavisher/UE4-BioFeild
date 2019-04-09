@@ -66,5 +66,12 @@ void UBFCharacterAudioComponent::SetCharacterGender(ECharacterGender InGender)
 void UBFCharacterAudioComponent::PlayVoice(EVoiceType VoiceType)
 {
 	Sound = GetPlaySound(VoiceType);
-	Super::Play(0.f);
+	if(VoiceType==EVoiceType::Death)
+	{
+		Super::Play(0.f);
+	}
+	else if (!IsPlaying())
+	{
+		Super::Play(0.f);
+	}
 }

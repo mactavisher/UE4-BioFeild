@@ -66,10 +66,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Zombie/SensingComp", meta = (AllowPrivateAccess = "true"))
 		UPawnSensingComponent* ZombieSensingComp;
 
-	/** bill board component used for show zombie's health bar */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BillboardComp")
-		UBillboardComponent* BillBoardComp;
-
 	/** behavior tree assets used for this zombie  */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behaviour Tree Asset")
 		UBehaviorTree* ZombieBehaviour;

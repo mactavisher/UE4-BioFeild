@@ -86,9 +86,10 @@ void ABFProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 	{
 		/** event dispatcher syntax,broadcast this hit event   */
 		OnProjectileHit.Broadcast(this, DeterminDamage(Hit), NormalImpulse);
-		if (OtherComp->Mobility==EComponentMobility::Movable&&OtherComp->IsSimulatingPhysics())
+		if (OtherComp->Mobility==EComponentMobility::Movable&&!OtherComp->GetClass()->IsChildOf(USkeletalMeshComponent::StaticClass()))
 		{
-			OtherComp->AddImpulseAtLocation(GetVelocity()*0.2f, GetActorLocation(), NAME_None);
+			OtherComp->SetSimulatePhysics(true);
+			OtherComp->AddImpulseAtLocation(GetVelocity()*0.5f, GetActorLocation(), NAME_None);
 		}
 		UBFSkeletalMeshComponent* HitSkeletal = Cast<UBFSkeletalMeshComponent>(OtherComp);
 		if (HitSkeletal)

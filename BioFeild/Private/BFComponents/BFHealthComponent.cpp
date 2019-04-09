@@ -44,10 +44,13 @@ void UBFHealthComponent::SetHealth(float Health)
 
 void UBFHealthComponent::ReduceHealth(float ReduceAmount)
 {
-	if (!OwnerCharacter->GetCharacterIsDead()&&ReduceAmount>=0.f)
+	if (!OwnerCharacter->GetCharacterIsDead()&&ReduceAmount>0.f)
 	{
 		CurrentHealth = CurrentHealth - ReduceAmount;
-		OnHealthReduced.Broadcast(ReduceAmount);
+		if (CurrentHealth > 0.f)
+		{
+			OnHealthReduced.Broadcast(ReduceAmount);
+		}
 		//make sure that character's current health won't go below 0
 		if (CheckIsLowHealth() && CurrentHealth >= 0)
 		{

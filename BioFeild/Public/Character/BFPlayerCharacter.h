@@ -15,6 +15,7 @@ class ABFWeaponBase;
 class UBFInventoryComponent;
 class ABFPlayerController;
 class UBFAnimInstance;
+class UPawnNoiseEmitterComponent;
 
 /** define a character's weapon Action Type */
 namespace ECharacterWeaponAction
@@ -82,6 +83,11 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		UTimelineComponent* AimingFOVTimeLineComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+		UPawnNoiseEmitterComponent* NoiseEmmiterComp;
+
+
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BFCamera")
 		float AimingCameraArmLenghModifier;

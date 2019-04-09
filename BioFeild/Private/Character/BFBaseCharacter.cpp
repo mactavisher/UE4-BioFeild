@@ -6,6 +6,7 @@
 #include "Weapons/BFWeaponBase.h"
 #include "Projectile/BFProjectile.h"
 #include "EngineMinimal.h"
+#include "GameMode/BFGameMode_Evasion.h"
 #include "Animation/BFAnimInstance.h"
 #include "Components/BillboardComponent.h"
 #include "BFComponents/BFCharacterAudioComponent.h"
@@ -35,7 +36,7 @@ void ABFBaseCharacter::PostInitializeComponents()
 	CharacterMesh = Cast<UBFSkeletalMeshComponent>(GetMesh());
 	CharacterMesh->SetCharacterOwner(this);
 	CharacterVoiceComponent->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, CharacterMesh->SocketNames.MouthSocket);
-	CharacterBillBoardComp->SetupAttachment(CharacterMesh, CharacterMesh->SocketNames.BillBoardSocket);
+	CharacterBillBoardComp->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, CharacterMesh->SocketNames.BillBoardSocket);
 	CharacterState = ECharacterState::Idle;
 	CharacterGender = ECharacterGender::male;
 	HealthComponent->SetOwnerCharacter(this);
@@ -142,8 +143,9 @@ float ABFBaseCharacter::PlayAnimMontage(class UAnimMontage* AnimMontage, float I
 
 float ABFBaseCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	ABFGameMode_Evasion* const CurrentGameMode = GetWorld()->GetAuthGameMode<ABFGameMode_Evasion>();
+	CurrentGameMode->ModifyDamage(Damage, EventInstigator, this->GetController());
 	HealthComponent->ReduceHealth(Damage);
-	
 	return Damage;
 }
 
@@ -156,7 +158,7 @@ void ABFBaseCharacter::ApplyDamageMomentum(float DamageTaken, FDamageEvent const
 {
 	if (!bIsDead)
 	{
-		HealthComponent->ReduceHealth(DamageTaken);
+		TakeDamage(DamageTaken, DamageEvent, PawnInstigator->GetController(), DamageCauser);
 	}
 }
 

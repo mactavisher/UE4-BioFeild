@@ -11,7 +11,7 @@ UBFCharacterMovementComponent::UBFCharacterMovementComponent(const FObjectInitia
 	ADSSpeedModifier = 0.4f;
 	DefaultMaxWalkSpeed = MaxWalkSpeed;
 	BrakingDecelerationWalking = 0.05f;
-	MaxAcceleration = 300.f;
+	MaxAcceleration = 350.f;
 }
 
 void UBFCharacterMovementComponent::SetSprintSpeed()

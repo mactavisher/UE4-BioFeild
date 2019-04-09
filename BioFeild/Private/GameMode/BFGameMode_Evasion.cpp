@@ -4,8 +4,6 @@
 #include "Bot/BFZombie.h"
 #include "Engine/World.h"
 #include "Bot/BFZombieController.h"
-#include "Character/BFPlayerCharacter.h"
-#include "Character/BFPlayerController.h"
 #include "Pickups/BFPickup_Ammo.h"
 #include "Pickups/BFPickup_Health.h"
 #include "TimerManager.h"
@@ -43,25 +41,10 @@ void ABFGameMode_Evasion::FinishCurrentWave()
 }
 
 
-
-void ABFGameMode_Evasion::ModifyDamage(float& OutDamage, AController* DamageCauser, AController*DamagedPlayer)
+void ABFGameMode_Evasion::ModifyDamage(float& Outdamage, AController* DamageCauser, AController*DamagedPlayer)
 {
-	/** self damage like gun shot self is not allowed */
-	if (DamagedPlayer == DamageCauser)
-	{
-		OutDamage = 0.f;
-	}
-	if (DamageCauser&&DamagedPlayer)
-	{
-		const ABFPlayerController* DamageCauserPlayer = Cast<ABFPlayerController>(DamageCauser);
-		const ABFPlayerController* Damaged = Cast<ABFPlayerController>(DamagedPlayer);
-		if (DamageCauserPlayer->GetTeam() == Damaged->GetTeam())
-		{
-			OutDamage = OutDamage * TeamDamageModifier;
-		}
-	}
+	Super::ModifyDamage(Outdamage, DamageCauser, DamagedPlayer);
 }
-
 
 void ABFGameMode_Evasion::ResetCurrentLivesLeft()
 {

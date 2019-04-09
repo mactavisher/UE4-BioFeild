@@ -3,6 +3,7 @@
 #include "BFPlayerCharacter.h"
 #include "DrawDebugHelpers.h"
 #include "Particles/ParticleSystem.h"
+#include "Components/PawnNoiseEmitterComponent.h"
 #include "Sound/SoundCue.h"
 #include "Animation/BFAnimInstance.h"
 #include "Weapons/BFWeaponBase.h"
@@ -23,6 +24,7 @@ ABFPlayerCharacter::ABFPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	CameraArmComp = ObjectInitializer.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("SprintArmComp"));
 	InventoryComponent = ObjectInitializer.CreateDefaultSubobject<UBFInventoryComponent>(this, TEXT("InventoryComp"));
 	AimingFOVTimeLineComponent = ObjectInitializer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("AimingFOVTimelineComp"));
+	NoiseEmmiterComp = ObjectInitializer.CreateDefaultSubobject<UPawnNoiseEmitterComponent>(this, TEXT("NoiseEmmiter"));
 	AimingFOVTimeLineComponent->SetComponentTickEnabled(true);
 	CameraArmComp->TargetArmLength = 110.f;
 	CameraArmComp->bUsePawnControlRotation = true;

@@ -183,7 +183,7 @@ public:
 
 	/** return zombie is dead or not */
 	UFUNCTION(BlueprintCallable, Category = "AI|Zombie")
-		virtual bool GetIsZombieDead()const { return bisDead; }
+		virtual bool GetIsZombieDead()const { return PossessedZombie->GetCharacterIsDead(); }
 
 	/** event when zombie just dead */
 	UFUNCTION(BlueprintNativeEvent, Category = "Events")
