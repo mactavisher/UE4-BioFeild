@@ -10,6 +10,7 @@
 #include "BFComponents/BFSkeletalMeshComponent.h"
 #include "Character/BFPlayerCharacter.h"
 #include "Bot/BFZombieController.h"
+#include "Engine/Engine.h"
 #include "Components/BoxComponent.h"
 #include "Character/BFPlayerController.h"
 #include "Character/BFPlayerCharacter.h"
@@ -22,12 +23,16 @@ ABFZombie::ABFZombie(const FObjectInitializer& ObjectInitializer) :Super(ObjectI
 	LeftHandDamage->SetBoxExtent(FVector(40.0f, 5.0f, 5.0f));
 	RightHandDamage->SetBoxExtent(FVector(40.0f, 5.0f, 5.0f));
 	/** turn of damage detect by defaults, only when attack will turn on this collision */
-	DisableLeftHandDamage();
-	DisableRighthandDamage();
-	LeftHandDamage->OnComponentBeginOverlap.AddDynamic(this, &ABFZombie::HandleLeftHandDamageOverlap);
-	LeftHandDamage->OnComponentEndOverlap.AddDynamic(this, &ABFZombie::HandleLeftHandDamageEndOverlap);
-	RightHandDamage->OnComponentBeginOverlap.AddDynamic(this, &ABFZombie::HandleRightHandDamageOverlap);
-	RightHandDamage->OnComponentEndOverlap.AddDynamic(this, &ABFZombie::HandleRightHandDamageEndOverlap);
+    DisableLeftHandDamage();
+    DisableRighthandDamage();
+	FScriptDelegate LeftHandDamageDelegate;
+	FScriptDelegate RightHandDamageDelegate;
+	RightHandDamageDelegate.BindUFunction(this, "HandleRightHandDamageOverlap");
+	LeftHandDamageDelegate.BindUFunction(this, "HandleLeftHandDamageOverlap");
+	LeftHandDamage->OnComponentBeginOverlap.AddUnique(LeftHandDamageDelegate);
+	//LeftHandDamage->OnComponentEndOverlap.AddDynamic(this, &ABFZombie::HandleLeftHandDamageEndOverlap);
+	RightHandDamage->OnComponentBeginOverlap.AddUnique(LeftHandDamageDelegate);
+	//RightHandDamage->OnComponentEndOverlap.AddDynamic(this, &ABFZombie::HandleRightHandDamageEndOverlap);
 	ZombieSensingComp->OnSeePawn.AddDynamic(this, &ABFZombie::OnSeePawn);
 	ZombieSensingComp->OnHearNoise.AddDynamic(this, &ABFZombie::OnHearNoise);
 	PrimaryActorTick.bCanEverTick = true;
@@ -119,6 +124,7 @@ void ABFZombie::DisableRighthandDamage()
 
 void ABFZombie::HandleLeftHandDamageOverlap(UPrimitiveComponent*OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("LeftDamage"));
 	ABFPlayerCharacter* PlayerCharacter = Cast<ABFPlayerCharacter>(OtherActor);
 	if (PlayerCharacter)
 	{
@@ -128,10 +134,12 @@ void ABFZombie::HandleLeftHandDamageOverlap(UPrimitiveComponent*OverlappedCompon
 			OnDamagePlayer.Broadcast(this, DamageTaken, SweepResult);
 		}
 	}
+	
 }
 
 void ABFZombie::HandleRightHandDamageOverlap(UPrimitiveComponent*OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("RightDamage"));
 	ABFPlayerCharacter* PlayerCharacter = Cast<ABFPlayerCharacter>(OtherActor);
 	if (PlayerCharacter)
 	{

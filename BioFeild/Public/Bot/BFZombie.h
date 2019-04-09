@@ -133,18 +133,6 @@ protected:
 
 	virtual void PostInitializeComponents()override;
 
-	/** enable left hand damage */
-	virtual void EnableLeftHandDamage();
-
-	/** enable right hand damage */
-	virtual void EnableRighthandDamage();
-
-	/** disable left hand damage */
-	virtual void DisableLeftHandDamage();
-
-	/** disable right hand damage */
-	virtual void DisableRighthandDamage();
-
 	/** decide damage amount base on collision info,currently ,will just simply return damage base, other detail cause effect damage will add on future */
 	virtual float  DecideHandsDamage(const FHitResult & SweepResult, ABFPlayerCharacter* PlayerCharacter, bool bFromSweep);
 
@@ -153,6 +141,21 @@ public:
 	/** override parent function to implement more logic  */
 	virtual float PlayAttackingAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
 
+	/** enable left hand damage */
+	UFUNCTION(BlueprintCallable,Category="Zombie|Damage")
+	virtual void EnableLeftHandDamage();
+
+	/** enable right hand damage */
+	UFUNCTION(BlueprintCallable, Category = "Zombie|Damage")
+	virtual void EnableRighthandDamage();
+
+	/** disable left hand damage */
+	UFUNCTION(BlueprintCallable, Category = "Zombie|Damage")
+	virtual void DisableLeftHandDamage();
+
+	/** disable right hand damage */
+	UFUNCTION(BlueprintCallable, Category = "Zombie|Damage")
+	virtual void DisableRighthandDamage();
 
 
 	UFUNCTION()

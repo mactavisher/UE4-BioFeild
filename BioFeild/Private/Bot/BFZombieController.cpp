@@ -225,7 +225,7 @@ void ABFZombieController::ReceiveZombieSeePlayer(ABFPlayerController* PlayerCont
 #endif
 		//update blackboard value is validated
 		PlayerEnemy = PlayerController;
-		const FName HasEnemyKey = TEXT("HasEnemy");
+		const FName HasEnemyKey = TEXT("CanSeeEnemy");
 		const FName EnemyLocationKey = TEXT("EnemyLocation");
 		const FName EnemyKey = TEXT("Enemy");
 		GetBlackboardComponent()->SetValueAsBool(HasEnemyKey, true);
