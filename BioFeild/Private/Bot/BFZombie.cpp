@@ -12,6 +12,7 @@
 #include "Bot/BFZombieController.h"
 #include "Components/BoxComponent.h"
 #include "Character/BFPlayerController.h"
+#include "Character/BFPlayerCharacter.h"
 
 ABFZombie::ABFZombie(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer.SetDefaultSubobjectClass<UBFSkeletalMeshComponent>(ACharacter::MeshComponentName))
 {
@@ -76,10 +77,12 @@ void ABFZombie::OnSeePawn(APawn* Pawn)
 	const ABFPlayerCharacter* const Character = Cast<ABFPlayerCharacter>(Pawn);
 	if (Character)
 	{
-		ABFPlayerController*  ActualEnemy = Character->GetPlayerController();
-		if (ActualEnemy)
+		ABFPlayerController*  PlayerController = Character->GetPlayerController();
+		if (PlayerController)
 		{
-			OnSeePlayer.Broadcast(ActualEnemy);
+			ABFPlayerCharacter* PlayerPawn = PlayerController->GetPoccessedPlayerCharacter();
+			const FVector PlayerLocation = PlayerPawn->GetActorLocation();
+			OnSeePlayer.Broadcast(PlayerController,PlayerPawn,PlayerLocation);
 		}
 	}
 }
@@ -156,12 +159,9 @@ void ABFZombie::HandleRightHandDamageEndOverlap(UPrimitiveComponent* OverlappedC
 void ABFZombie::HandleDeath()
 {
 	Super::HandleDeath();
-	bIsDead = true;
 	DisableRighthandDamage();
 	DisableRighthandDamage();
 	ZombieSensingComp->Deactivate();
-	//ZombieController->GetBlackboardComponent()->SetValueAsBool("IsSelfDead", true);
-	ZombieController->SetIsDead(true);
 }
 
 float ABFZombie::DecideHandsDamage(const FHitResult & SweepResult, ABFPlayerCharacter* PlayerCharacter, bool bFromSweep)

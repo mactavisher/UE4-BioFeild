@@ -125,6 +125,7 @@ void ABFZombieController::Possess(APawn* InPawn)
 		PossessedZombie->SetZombieCurrentState(EZombieState::Idle);
 		PossessedZombie->OnSeePlayer.AddDynamic(this, &ABFZombieController::ReceiveZombieSeePlayer);
 		PossessedZombie->OnHearPlayer.AddDynamic(this, &ABFZombieController::ReceiveZombieHearPlayer);
+		PossessedZombie->OnZombieDead.AddDynamic(this, &ABFZombieController::OnZombieDead);
 		if (PossessedZombie->ZombieBehaviour)
 		{
 			RunBehaviorTree(PossessedZombie->ZombieBehaviour);
@@ -134,7 +135,6 @@ void ABFZombieController::Possess(APawn* InPawn)
 
 void ABFZombieController::UnPossess()
 {
-	BehaviorTreeComponent->StopTree(EBTStopMode::Safe);
 	Super::UnPossess();
 #if WITH_EDITOR
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("zombie is dead, and i do not want to controll a dead zombie..!"));
@@ -186,12 +186,16 @@ void ABFZombieController::SpawnPickUps()
 	}
 }
 
-void ABFZombieController::SetIsDead(bool Dead)
+void ABFZombieController::OnZombieDead()
 {
-	bisDead = Dead;
-	OnZombieDead();
+	const FName BlackBoardKey = TEXT("IsSelfDead");
+	GetBlackboardComponent()->SetValueAsBool(BlackBoardKey, true);
+	BehaviorTreeComponent->StopTree(EBTStopMode::Safe);
+	UnPossess();
+#if WITH_EDITOR
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("zombie is dead"));
+#endif
 }
-
 
 void ABFZombieController::ReceiveZombieHearPlayer(ABFPlayerCharacter* PlayerCharacter, const FVector& Location, float Volume)
 {
@@ -209,16 +213,24 @@ void ABFZombieController::ReceiveZombieHearPlayer(ABFPlayerCharacter* PlayerChar
 	}
 }
 
-void ABFZombieController::ReceiveZombieSeePlayer(ABFPlayerController* Player)
+
+void ABFZombieController::ReceiveZombieSeePlayer(ABFPlayerController* PlayerController, ABFPlayerCharacter* PlayerPawn, FVector Location)
 {
 	GetWorldTimerManager().SetTimer(LostPlayerTimerHanle, this, &ABFZombieController::LostPlayer, 1.0f, false, 2.f);
 	//only set PlayerEnemy if it null or Player is not same as PlayerEnemy 
-#if WITH_EDITOR
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("I see something!"));
-#endif
-	if (PlayerEnemy == nullptr&&PlayerEnemy != Player&&Player != nullptr)
+	if (PlayerEnemy == nullptr&&PlayerEnemy != PlayerController && PlayerController != nullptr)
 	{
-		PlayerEnemy = Player;
+#if WITH_EDITOR
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("I see something!"));
+#endif
+		//update blackboard value is validated
+		PlayerEnemy = PlayerController;
+		const FName HasEnemyKey = TEXT("HasEnemy");
+		const FName EnemyLocationKey = TEXT("EnemyLocation");
+		const FName EnemyKey = TEXT("Enemy");
+		GetBlackboardComponent()->SetValueAsBool(HasEnemyKey, true);
+		GetBlackboardComponent()->SetValueAsObject(EnemyKey, PlayerController);
+		GetBlackboardComponent()->SetValueAsVector(EnemyLocationKey, PlayerPawn->GetActorLocation());
 	}
 }
 
@@ -258,11 +270,6 @@ void ABFZombieController::FindPathPointsToMove()
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("You may forgot to put a navigation bounds volume to your level"));
 #endif
 	}
-}
-
-void ABFZombieController::OnZombieDead_Implementation()
-{
-
 }
 
 

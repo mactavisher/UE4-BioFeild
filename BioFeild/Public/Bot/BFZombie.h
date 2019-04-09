@@ -49,9 +49,10 @@ enum class EZombieState :uint8 {
 
 
 //event signature syntaxes
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSeePlayerSignatrue, class ABFPlayerController*, Player);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSeePlayerSignatrue, class ABFPlayerController*, Player,class ABFPlayerCharacter*, PlayerPawn,FVector,Location);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHearPlayerSignature, ABFPlayerCharacter*, Instigator, const FVector&, Location, float, Volume);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnCausePlayerDamageSignature, ABFZombie*, DamageCauser, float, DamageAmount, FHitResult, BodyHit);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOZomibeDeadSignature);
 
 /**
 *   zombie type of bot
@@ -98,13 +99,17 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Zombie|Events")
 		FOnCausePlayerDamageSignature OnDamagePlayer;
 
-	/** event syntax to broadcast see player event */
+	/**notify zombie controller is see player */
 	UPROPERTY(BlueprintAssignable, Category = "Zombie|Events")
 		FOnSeePlayerSignatrue OnSeePlayer;
 
-	/** event syntax to broadcast see Hear noise  event */
+	/**notify zombie controller if hear player  */
 	UPROPERTY(BlueprintAssignable, Category = "Zombie|Events")
 		FOnHearPlayerSignature OnHearPlayer;
+
+	/**notify zombie controller if dead  */
+	UPROPERTY(BlueprintAssignable, Category = "Zombie|Events")
+		FOZomibeDeadSignature OnZombieDead;
 
 
 protected:

@@ -173,10 +173,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AI|Zombie")
 		virtual void SpawnPickUps();
 
-	/** set zombie is dead or not */
-	UFUNCTION(BlueprintCallable, Category = "AI|Zombie")
-		virtual void SetIsDead(bool Dead);
-
 	/** return has zombie reached it's destination ?*/
 	UFUNCTION(BlueprintCallable, Category = "AI|Zombie")
 		virtual bool GetZombieHasReachDestination()const { return bHasReachDestination; }
@@ -185,8 +181,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AI|Zombie")
 		virtual bool GetIsZombieDead()const { return PossessedZombie->GetCharacterIsDead(); }
 
-	/** event when zombie just dead */
-	UFUNCTION(BlueprintNativeEvent, Category = "Events")
+
+	UFUNCTION()
 		void OnZombieDead();
 
 	/**return cached path points to a location*/
@@ -199,7 +195,7 @@ public:
 
 	/** receive zombie see player and tell the controller to deal with it */
 	UFUNCTION()
-		virtual void ReceiveZombieSeePlayer(ABFPlayerController* Player);
+		virtual void ReceiveZombieSeePlayer(ABFPlayerController* PlayerController, ABFPlayerCharacter* PlayerPawn, FVector Location);
 
 	/** find path points to a location*/
 	UFUNCTION(BlueprintCallable, Category = "AI|Zombie")
