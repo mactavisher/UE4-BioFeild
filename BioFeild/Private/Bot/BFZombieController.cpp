@@ -27,6 +27,7 @@ ABFZombieController::ABFZombieController(const FObjectInitializer& ObjectInitial
 void ABFZombieController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	WalkTo();
 }
 
 void ABFZombieController::BeginPlay()
@@ -76,6 +77,24 @@ bool ABFZombieController::DecideToTrackingPlayer()
 		LostPlayer();
 	}
 	return true;
+}
+
+void ABFZombieController::DecideToTrackingNoise(class ABFBaseCharacter* NoiseMaker, FVector NoiseLocation)
+{
+	const ABFPlayerCharacter* const PlayerCharacter = Cast<ABFPlayerCharacter>(NoiseMaker);
+	if (PlayerCharacter)
+	{
+		const uint8 RandomNum = FMath::RandHelper(6);
+			if (bWantsToTrackingNoise&&RandomNum ==(uint8) 2 || RandomNum == (uint8)4)
+			{
+				const FName bWantsToTrackingNoiseKey = "bWantsToTrackingNoise";
+				const FName NoiseLocationKey = "NoiseLocation";
+			    GetBlackboardComponent()->SetValueAsVector(NoiseLocationKey, NoiseLocation);
+				GetBlackboardComponent()->SetValueAsBool(bWantsToTrackingNoiseKey, true);
+				//@Todo
+				// add a service to update has zombie reached noise location
+			}
+	}
 }
 
 void ABFZombieController::PostInitializeComponents()
@@ -131,7 +150,7 @@ void ABFZombieController::Possess(APawn* InPawn)
 		PossessedZombie->SetZombieController(this);
 		PossessedZombie->SetZombieCurrentState(EZombieState::Idle);
 		PossessedZombie->OnSeePlayer.AddDynamic(this, &ABFZombieController::ReceiveZombieSeePlayer);
-		PossessedZombie->OnHearPlayer.AddDynamic(this, &ABFZombieController::ReceiveZombieHearPlayer);
+		PossessedZombie->OnHearPlayer.AddDynamic(this, &ABFZombieController::ReceiveZombieHearNoise);
 		PossessedZombie->OnZombieDead.AddDynamic(this, &ABFZombieController::OnZombieDead);
 		PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 200.f;
 		WalkTo();
@@ -148,15 +167,6 @@ void ABFZombieController::UnPossess()
 #if WITH_EDITOR
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("zombie is dead, and i do not want to controll a dead zombie..!"));
 #endif
-}
-
-bool ABFZombieController::CanSeeEnemy() const
-{
-	if (!PlayerEnemy)
-	{
-		return false;
-	}
-	return LineOfSightTo(PlayerEnemy, PlayerEnemy->GetPawn()->GetActorLocation(), true);
 }
 
 void ABFZombieController::DiscardCurrentPlayer()
@@ -206,17 +216,17 @@ void ABFZombieController::OnZombieDead()
 #endif
 }
 
-void ABFZombieController::ReceiveZombieHearPlayer(ABFPlayerCharacter* PlayerCharacter, const FVector& Location, float Volume)
+void ABFZombieController::ReceiveZombieHearNoise(ABFPlayerCharacter* PlayerCharacter, const FVector& Location, float Volume)
 {
 	ABFPlayerController* Player = PlayerCharacter->GetPlayerController();
 	//only set PlayerEnemy if it null or Player is not same as PlayerEnemy 
 	GetBlackboardComponent()->SetValueAsBool("HasHearNoise", true);
 	GetBlackboardComponent()->SetValueAsVector("NoiseLocation", Player->GetPoccessedPlayerCharacter()->GetActorLocation());
-#if WITH_EDITOR
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("I hear something................................................!"));
-#endif
 	if (PlayerEnemy == nullptr&&PlayerEnemy != Player)
 	{
+#if WITH_EDITOR
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("I hear something................................................!"));
+#endif
 		PlayerEnemy = Player;
 		DecideToTrackingPlayer();
 	}

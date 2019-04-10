@@ -72,7 +72,11 @@ protected:
 
 	/** if hear any noise , whether or not to check the location */
 	UPROPERTY()
-		bool bShouldCheckNoiseLocation;
+		bool bWantsToTrackingNoise;
+
+	/** if hear any noise , whether or not to check the location */
+	UPROPERTY()
+		bool bIsTrackingNoise;
 
 	/** indicate that player is attackable  */
 	UPROPERTY()
@@ -81,9 +85,6 @@ protected:
 	/** whether or not to perform attack if player is attackable */
 	UPROPERTY()
 		bool bWantsToAttack;
-
-	UPROPERTY()
-		FTimerHandle ZombieAttackingHandle;
 
 	/** next place zombie want to go to */
 	FVector NextMoveToLocation;
@@ -98,7 +99,14 @@ protected:
 	TArray<FVector> PathPoints;
 
 	/** timer to handle zombie lost player target */
-	FTimerHandle LostPlayerTimerHanle;
+	UPROPERTY()
+		FTimerHandle LostPlayerTimerHanle;
+
+	UPROPERTY()
+		FTimerHandle ZombieAttackingHandle;
+
+	UPROPERTY()
+		FTimerHandle AddControllerInputHandle;
 
 	virtual void Tick(float DeltaTime)override;
 
@@ -114,8 +122,11 @@ protected:
 
 	virtual void StopMovement()override;
 
-	/** call to decide whether give up this target or tracking it each time sees or hear something  */
+	/** call to decide whether give up this target or tracking it each time sees player  */
 	virtual bool DecideToTrackingPlayer();
+
+	/** call to decide whether give up this target or tracking it each time  hear something  Noise  and update key value on blackboard asset*/
+	virtual void DecideToTrackingNoise(class ABFBaseCharacter* NoiseMaker,FVector NoiseLocation);
 
 	void PostInitializeComponents()override;
 
@@ -135,9 +146,6 @@ public:
 
 	/** implement unpossess function*/
 	virtual void UnPossess()override;
-
-	/** check to see if zombie can see enemy currently*/
-	virtual bool CanSeeEnemy()const;
 
 	/** make zombie to give up tracking player enemy */
 	virtual void DiscardCurrentPlayer();
@@ -176,7 +184,7 @@ public:
 
 	/** receive zombie hear noise and tell the controller to deal with it */
 	UFUNCTION()
-		virtual void ReceiveZombieHearPlayer(ABFPlayerCharacter*  PlayerCharacter, const FVector& Location, float Volume);
+		virtual void ReceiveZombieHearNoise(ABFPlayerCharacter*  PlayerCharacter, const FVector& Location, float Volume);
 
 	/** receive zombie see player and tell the controller to deal with it */
 	UFUNCTION()
