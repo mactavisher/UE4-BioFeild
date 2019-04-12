@@ -95,6 +95,8 @@ protected:
 	/** is this zombie reached it's destination */
 	bool bHasReachDestination;
 
+	FVector EnemyLocation;
+
 	/** collection path locations to a specific location */
 	TArray<FVector> PathPoints;
 
@@ -118,7 +120,10 @@ protected:
 
 	virtual void CrawlerTo();
 
+public:
 	virtual void AttackPlayer();
+
+	virtual void StopAttack();
 
 	virtual void StopMovement()override;
 
@@ -193,4 +198,15 @@ public:
 	/** find path points to a location*/
 	UFUNCTION(BlueprintCallable, Category = "AI|Zombie")
 		virtual void FindPathPointsToMove();
+
+	/** Move a zombie ,can receive Move mode */
+	UFUNCTION()
+	virtual void MoveZombie(EZombieMoveType SpecifyMoveType);
+
+	UFUNCTION()
+		virtual void StopMoveZombie();
+
+	UFUNCTION()
+		virtual void SetEnemyLocation(FVector EnemyLocation) { EnemyLocation = EnemyLocation; };
+
 };

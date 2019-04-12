@@ -148,8 +148,8 @@ struct FWeaponConfigData {
 	/** default value */
 	FWeaponConfigData()
 	{
-		AmmoPerClip = 100;
-		MaxAmmo = 120;
+		AmmoPerClip = 500;
+		MaxAmmo = 750;
 		TimeBetweenShots = 0.12f;
 		BaseDamage = 35.f;
 	}

@@ -17,7 +17,7 @@ void ABFGameModeBase::ModifyDamage(float& OutDamage, AController* DamageCauser, 
 	{
 		OutDamage = 0.f;
 	}
-	if (DamageCauser&&DamagedPlayer)
+	/*if (DamageCauser&&DamagedPlayer)
 	{
 		if (DamageCauser->GetClass() == DamagedPlayer->GetClass())
 		{
@@ -32,7 +32,7 @@ void ABFGameModeBase::ModifyDamage(float& OutDamage, AController* DamageCauser, 
 		{
 			OutDamage = OutDamage;
 		}
-	}
+	}*/
 }
 
 

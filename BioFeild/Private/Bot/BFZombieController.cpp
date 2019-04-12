@@ -13,6 +13,7 @@
 #include "Pickups/BFPickup_Ammo.h"
 #include "Pickups/BFPickupBase.h"
 #include "TimerManager.h"
+#include "Animation/BFZombieAnimation.h"
 #include "AI/Navigation/NavigationSystem.h"
 #include "AI/Navigation/NavigationPath.h"
 #include "Pickups/BFPickup_Health.h"
@@ -27,7 +28,6 @@ ABFZombieController::ABFZombieController(const FObjectInitializer& ObjectInitial
 void ABFZombieController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	WalkTo();
 }
 
 void ABFZombieController::BeginPlay()
@@ -39,13 +39,18 @@ void ABFZombieController::WalkTo()
 {
 	//const FName EnemyLocationkey = "EnemyLocation";
 	//const FVector EnemyLocation = GetBlackboardComponent()->GetValueAsVector(EnemyLocationkey);
+	PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 50.f;
 	const FVector ZombieLocation = PossessedZombie->GetActorLocation();
-	PossessedZombie->AddMovementInput(FVector(0.f,0.f,0.f) - ZombieLocation, 1.0f, true);
+	PossessedZombie->AddMovementInput(EnemyLocation-ZombieLocation, 1.0f, true);
 }
 
 void ABFZombieController::ChargeTo()
 {
-	
+	PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed =300.f;
+	const float MaxWalkingSpeed = PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed;
+	const float CurrentWalkSpeed = PossessedZombie->GetCharacterXYVelocity().Size();
+	const FVector ZombieLocation = PossessedZombie->GetActorLocation();
+	PossessedZombie->AddMovementInput(EnemyLocation - ZombieLocation,1.0f);
 }
 
 void ABFZombieController::CrawlerTo()
@@ -56,11 +61,18 @@ void ABFZombieController::CrawlerTo()
 void ABFZombieController::AttackPlayer()
 {
 	const bool bisZombieAttacking = PossessedZombie->GetIsZombieAttacking();
-	if (!bisZombieAttacking&&bWantsToAttack)
-	{
+
 		PossessedZombie->SetIsZombieAttacking(true);
+		Cast<UBFZombieAnimation>(PossessedZombie->GetMesh()->GetAnimInstance())->bCanAttack = true;
 		PossessedZombie->PlayAnimMontage(PossessedZombie->AttackAnim, 1.0f, NAME_None);
-	}
+}
+
+void ABFZombieController::StopAttack()
+{
+	PossessedZombie->SetIsZombieAttacking(true);
+	Cast<UBFZombieAnimation>(PossessedZombie->GetMesh()->GetAnimInstance())->bCanAttack = false;
+	PossessedZombie->DisableLeftHandDamage();
+	PossessedZombie->DisableRighthandDamage();
 }
 
 void ABFZombieController::StopMovement()
@@ -93,6 +105,7 @@ void ABFZombieController::DecideToTrackingNoise(class ABFBaseCharacter* NoiseMak
 				GetBlackboardComponent()->SetValueAsBool(bWantsToTrackingNoiseKey, true);
 				//@Todo
 				// add a service to update has zombie reached noise location
+			
 			}
 	}
 }
@@ -152,7 +165,7 @@ void ABFZombieController::Possess(APawn* InPawn)
 		PossessedZombie->OnSeePlayer.AddDynamic(this, &ABFZombieController::ReceiveZombieSeePlayer);
 		PossessedZombie->OnHearPlayer.AddDynamic(this, &ABFZombieController::ReceiveZombieHearNoise);
 		PossessedZombie->OnZombieDead.AddDynamic(this, &ABFZombieController::OnZombieDead);
-		PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 200.f;
+		PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 50.f;
 		WalkTo();
 		if (PossessedZombie->ZombieBehaviour)
 		{
@@ -247,9 +260,11 @@ void ABFZombieController::ReceiveZombieSeePlayer(ABFPlayerController* PlayerCont
 		const FName HasEnemyKey = TEXT("CanSeeEnemy");
 		const FName EnemyLocationKey = TEXT("EnemyLocation");
 		const FName EnemyKey = TEXT("Enemy");
+		const FName EnemyCharacterKey = "EnemyCharacter";
 		GetBlackboardComponent()->SetValueAsBool(HasEnemyKey, true);
 		GetBlackboardComponent()->SetValueAsObject(EnemyKey, PlayerController);
 		GetBlackboardComponent()->SetValueAsVector(EnemyLocationKey, PlayerPawn->GetActorLocation());
+		GetBlackboardComponent()->SetValueAsObject(EnemyCharacterKey, PlayerPawn);
 	}
 }
 
@@ -291,5 +306,24 @@ void ABFZombieController::FindPathPointsToMove()
 	}
 }
 
+void ABFZombieController::MoveZombie(EZombieMoveType SpecifyMoveType)
+{
+	//ZombieCurrentMoveType = SpecifyMoveType;
+	const EZombieMoveType ZombieCurrentMoveType = PossessedZombie->GetZombieMoveType();
+	switch (ZombieCurrentMoveType)
+	{
+	default:GetWorldTimerManager().SetTimer(AddControllerInputHandle, this, &ABFZombieController::WalkTo, 0.01f, true, 0.f); break;
+	case EZombieMoveType::WalkTo:GetWorldTimerManager().SetTimer(AddControllerInputHandle, this, &ABFZombieController::WalkTo, 0.01f, true, 0.f); break;
+	case EZombieMoveType::ChargeTo: GetWorldTimerManager().SetTimer(AddControllerInputHandle, this, &ABFZombieController::ChargeTo, 0.01f, true, 0.f); break;
+	}
+}
 
+void ABFZombieController::StopMoveZombie()
+{
+	if (GetWorldTimerManager().IsTimerActive(AddControllerInputHandle))
+	{
+		GetWorldTimerManager().ClearTimer(AddControllerInputHandle);
+	}
+	Super::StopMovement();
+}
 

@@ -12,6 +12,8 @@ class ABFPlayerCharacter;
 class ABFPlayerController_Menu;
 class UGameplayStatics;
 class UObjectLibrary;
+class ABFWeaponBase;
+class ABFAttachment_Scope;
 
 /**
  *  Menu game mode class 

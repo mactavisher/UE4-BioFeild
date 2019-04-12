@@ -24,6 +24,7 @@ void UBTS_UpdateEnemyLocation::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 		if (Enemy)
 		{
 			FVector Location = Enemy->GetPoccessedPlayerCharacter()->GetActorLocation();
+			ZombieController->SetEnemyLocation(Location);
 			const FName Key = GetSelectedBlackboardKey();
 			OwnerComp.GetBlackboardComponent()->SetValueAsVector(Key, Location);
 		}

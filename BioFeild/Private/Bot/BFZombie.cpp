@@ -22,6 +22,7 @@ ABFZombie::ABFZombie(const FObjectInitializer& ObjectInitializer) :Super(ObjectI
 	RightHandDamage = ObjectInitializer.CreateDefaultSubobject<UBoxComponent>(this, TEXT("Damage|RightHand"));
 	LeftHandDamage->SetBoxExtent(FVector(40.0f, 5.0f, 5.0f));
 	RightHandDamage->SetBoxExtent(FVector(40.0f, 5.0f, 5.0f));
+	MoveType = EZombieMoveType::WalkTo;
 	/** turn of damage detect by defaults, only when attack will turn on this collision */
     DisableLeftHandDamage();
     DisableRighthandDamage();
@@ -36,6 +37,8 @@ ABFZombie::ABFZombie(const FObjectInitializer& ObjectInitializer) :Super(ObjectI
 	ZombieSensingComp->OnSeePawn.AddDynamic(this, &ABFZombie::OnSeePawn);
 	ZombieSensingComp->OnHearNoise.AddDynamic(this, &ABFZombie::OnHearNoise);
 	PrimaryActorTick.bCanEverTick = true;
+	HandDamageBase = 20.f;
+	bUseControllerRotationYaw = true;
 }
 
 void ABFZombie::BeginPlay()
@@ -47,7 +50,6 @@ void ABFZombie::BeginPlay()
 	const FRotator YawRotation(0, Rotation.Yaw, 0);
 	// get forward vector
 	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	AddMovementInput(Direction, 100.f);
 }
 
 void ABFZombie::PostInitializeComponents()

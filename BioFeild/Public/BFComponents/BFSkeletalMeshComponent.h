@@ -85,6 +85,9 @@ protected:
 		bool bCanPerformStep;
 
 	UPROPERTY()
+		uint8 bTickDetectTrace : 1;
+
+	UPROPERTY()
 		ABFProjectile* HitProjectile;
 
 	UPROPERTY()
@@ -146,4 +149,6 @@ public:
 
 public:
 	virtual UBFAnimInstance* GetCurrentAnimInstance();
+
+	virtual void DeactivateDetectTrace();
 };

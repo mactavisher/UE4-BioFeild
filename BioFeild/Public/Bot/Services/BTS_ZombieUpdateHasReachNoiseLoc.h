@@ -14,8 +14,4 @@ class BIOFEILD_API UBTS_ZombieUpdateHasReachNoiseLoc : public UBTService_Blackbo
 {
 	GENERATED_UCLASS_BODY()
 		virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)override;
-	
-	
-	
-	
 };

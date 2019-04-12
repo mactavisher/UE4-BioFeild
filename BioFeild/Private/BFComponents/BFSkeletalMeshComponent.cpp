@@ -17,6 +17,7 @@ UBFSkeletalMeshComponent::UBFSkeletalMeshComponent(const FObjectInitializer& Obj
 	PrimaryComponentTick.bCanEverTick = true;
 	StepLoudnessBase = 1.0f;
 	StepNoiseEffectiveRadius = 100.f;
+	bTickDetectTrace = true;
 	this->OnComponentHit.AddDynamic(this, &UBFSkeletalMeshComponent::HandleHit);
 	SocketNames.CurrentWeaponPistolSocket = TEXT("CurrentHandGunBaseSocket");
 	SocketNames.CurrentWeaponRifleSocket = TEXT("CurrentRifleBaseSocket");
@@ -125,7 +126,7 @@ void UBFSkeletalMeshComponent::ReceiveProjectileHit(ABFProjectile* HitProjectile
 	OwnerCharacter->TakeDamage(DamageAmount, DamageEvent, HitProjectile->GetWeaponOwner()->GetWeaponOwner()->GetPlayerController(), HitProjectile);
 	if (OwnerCharacter->GetCharacterIsDead())
 	{
-		this->AddImpulseAtLocation(HitProjectile->GetVelocity(), HitProjectile->GetActorLocation(), NAME_None);
+		this->AddImpulseAtLocation(HitProjectile->GetVelocity()*1.5f, HitProjectile->GetActorLocation(), NAME_None);
 	}
 }
 
@@ -171,15 +172,23 @@ UBFAnimInstance* UBFSkeletalMeshComponent::GetCurrentAnimInstance()
 	}
 }
 
+void UBFSkeletalMeshComponent::DeactivateDetectTrace()
+{
+	bTickDetectTrace = false;
+}
+
 void UBFSkeletalMeshComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	StepOnDetectTrace1();
-	StepOnDetectTrace2();
-	if (bCanPerformStep)
+	if (bTickDetectTrace)
 	{
-		/** send event dispatcher to  he player character when character can perform a step on move  */
-		OnCanStep.Broadcast(StepOnDetect1TraceHit, StepOnDectct2TraceHit);
+		StepOnDetectTrace1();
+		StepOnDetectTrace2();
+		if (bCanPerformStep)
+		{
+			/** send event dispatcher to  he player character when character can perform a step on move  */
+			OnCanStep.Broadcast(StepOnDetect1TraceHit, StepOnDectct2TraceHit);
+		}
 	}
 }
 

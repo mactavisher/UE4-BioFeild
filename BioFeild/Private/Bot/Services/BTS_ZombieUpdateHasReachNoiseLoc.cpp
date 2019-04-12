@@ -30,7 +30,7 @@ void UBTS_ZombieUpdateHasReachNoiseLoc::TickNode(UBehaviorTreeComponent& OwnerCo
 			const FName HasReachNoiseLocationKey = GetSelectedBlackboardKey();
 			const float Distance = FVector::Distance(NoiseLocation, ZombieCurrentLoation);
 			const float DistanceLimit = FMath::FRandRange(20.f, 30.f);
-			const bool bHasReachNoiseLocation = Distance > DistanceLimit ? true : false;
+			const bool bHasReachNoiseLocation = Distance <=DistanceLimit ? true : false;
 			OwnerComp.GetBlackboardComponent()->SetValueAsBool(HasReachNoiseLocationKey, bHasReachNoiseLocation);
 		}
 	}

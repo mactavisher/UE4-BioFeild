@@ -12,6 +12,7 @@ UBFZombieAnimation::UBFZombieAnimation(const FObjectInitializer& ObjectInitializ
 
 void UBFZombieAnimation::NativeInitializeAnimation()
 {
+	Super::NativeInitializeAnimation();
 	Zombie = Cast<ABFZombie>(TryGetPawnOwner());
 	if (Zombie)
 	{
@@ -21,6 +22,10 @@ void UBFZombieAnimation::NativeInitializeAnimation()
 
 void UBFZombieAnimation::NativeUpdateAnimation(float DeltaSeconds)
 {
-
+	Super::NativeUpdateAnimation(DeltaSeconds);
+	if (Zombie)
+	{
+		bIsWalking = Zombie->GetCharacterXYVelocity().Size() > Zombie->GetCharacterMovement()->MaxWalkSpeed*0.8f;
+	}
 }
 

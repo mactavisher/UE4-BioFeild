@@ -31,7 +31,7 @@ void UBTS_ZombieUpdateEnemyLocChange::TickNode(UBehaviorTreeComponent& OwnerComp
 			const FName EnemyLocationHasChangedkey = GetSelectedBlackboardKey();
 			const FVector LastEnemyLocation = OwnerComp.GetBlackboardComponent()->GetValueAsVector(EnemyLocationKey);
 			const FVector CurrentEnemyLocation = PlayerController->GetPoccessedPlayerCharacter()->GetActorLocation();
-			const float AcceptableDistance = FMath::RandRange(20.f, 50.f);
+			const float AcceptableDistance = 250.f;
 			const float Distance = FMath::Abs(FVector::Distance(CurrentEnemyLocation, LastEnemyLocation));
 			bool EnemyLocationChanged = Distance <= AcceptableDistance ? true : false;
 			OwnerComp.GetBlackboardComponent()->SetValueAsBool(EnemyLocationHasChangedkey, EnemyLocationChanged);
