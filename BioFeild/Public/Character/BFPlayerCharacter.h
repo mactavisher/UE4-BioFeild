@@ -29,6 +29,12 @@ namespace ECharacterWeaponAction
 	};
 }
 
+UENUM(BlueprintType)
+enum class EViewMode :uint8
+{
+	TPS,
+	FPS
+};
 USTRUCT(BlueprintType)
 struct FItemTraceDetectResult {
 
@@ -97,6 +103,9 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Curve")
 		UCurveFloat* AimingFOVCurve;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ViewMode")
+		EViewMode ViewMode;
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnWeaponUnequipedFinishedSignature OnUnequipWeapon;
@@ -293,4 +302,7 @@ public:
 		   virtual void AimingFOVDelegateCallBack();
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
 		 virtual FItemTraceDetectResult GetTraceDetectResult()const { return DetectedItemInfo; }
+
+	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
+	virtual EViewMode GetViewMode()const { return ViewMode; }
 };

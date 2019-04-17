@@ -43,12 +43,6 @@ void ABFHUD::InitializeWidgets()
 {
 	if (OwnerController)
 	{
-		if (CurrentPlayerWeapon)
-		{
-			CrossHairWidget = CurrentPlayerWeapon->GetCrossHairWidgetInstance();
-			TargetHitWidget = CurrentPlayerWeapon->GetTargetHitFeedBackWidgetInstance();
-			WeaponInfoWidet = CurrentPlayerWeapon->GetWeaponInfoWidgetInstace();
-		}
 	}
 }
 

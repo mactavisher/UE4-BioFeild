@@ -48,33 +48,23 @@ class BIOFEILD_API ABFShellImpactEffects : public AActor
 	GENERATED_UCLASS_BODY()
 
 		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sound")
-		TArray<FShellImpactSoundData> ShellImactSoundDatas;
+		FShellImpactSoundData ShellImactSoundData;
 
 protected:
 
 	UPhysicalMaterial* PhysicalMat;
 
-	int32 CurrentCollideCount;
-
-	FShellImpactSoundData CurrentSelectSoundData;
-
 public:
 
-	virtual int32 GetCurrentCollideCount()const { return CurrentCollideCount; }
-
-	virtual void SetCurrentCollideCount(int32 CurrentCollideCount) { this->CurrentCollideCount = CurrentCollideCount; }
 
 	virtual UPhysicalMaterial* GetPhysicalMat() { return PhysicalMat; }
 
 	virtual void SetPhysicalMat(UPhysicalMaterial* PhysicalMat) { this->PhysicalMat = PhysicalMat; }
 
-	virtual TArray<FShellImpactSoundData>GetSoundImpactDatas()const { return ShellImactSoundDatas; }
+	virtual FShellImpactSoundData GetSoundImpactDatas()const { return ShellImactSoundData; }
 
-	virtual FShellImpactSoundData GetCurrentShellImpactData()const { return CurrentSelectSoundData; }
 
 	virtual void PostInitializeComponents()override;
 
 	virtual USoundCue* GetShellImpactSound();
-
-	virtual void DeterminSoundData();
 };

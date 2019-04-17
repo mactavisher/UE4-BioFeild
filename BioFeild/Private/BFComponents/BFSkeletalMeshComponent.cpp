@@ -123,10 +123,11 @@ void UBFSkeletalMeshComponent::ReceiveProjectileHit(ABFProjectile* HitProjectile
 {
 	this->HitProjectile = HitProjectile;
 	const FDamageEvent DamageEvent = HitProjectile->GetDamageEvent();
+	const float ImpulseModifier = FMath::RandRange(1.1f, 1.4f);
 	OwnerCharacter->TakeDamage(DamageAmount, DamageEvent, HitProjectile->GetWeaponOwner()->GetWeaponOwner()->GetPlayerController(), HitProjectile);
 	if (OwnerCharacter->GetCharacterIsDead())
 	{
-		this->AddImpulseAtLocation(HitProjectile->GetVelocity()*1.5f, HitProjectile->GetActorLocation(), NAME_None);
+		this->AddImpulseAtLocation(HitProjectile->GetVelocity()*ImpulseModifier, HitProjectile->GetActorLocation(), NAME_None);
 	}
 }
 

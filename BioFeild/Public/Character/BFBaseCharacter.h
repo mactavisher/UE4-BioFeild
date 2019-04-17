@@ -204,14 +204,13 @@ class BIOFEILD_API ABFBaseCharacter : public ACharacter
 	/**character heart beat data  */
 	UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category = "BFCharacter")
 		FCharacterEnergyData CharacterEnergyData;
-
-protected:
+public:
 	/** cached customized SkeletalMesh Comp */
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="BFCharacterMesh")
 		UBFSkeletalMeshComponent* CharacterMesh;
 
 	/** cached customized CharacterMovement Comp */
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BFCharacterMovement")
 		UBFCharacterMovementComponent* CharacterMoventComp;
 
 	/** character's current state */

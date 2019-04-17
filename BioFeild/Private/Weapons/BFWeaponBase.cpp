@@ -8,11 +8,13 @@
 #include "Particles/ParticleSystem.h"
 #include "Character/BFPlayerCharacter.h"
 #include "Character/BFPlayerController.h"
+#include "BFComponents//BFSkeletalMeshComponent.h"
 #include "TimerManager.h"
 #include "GameFramework/Actor.h"
 #include "Engine/GameInstance.h"
 #include "EngineMinimal.h"
 #include "Engine/World.h"
+#include "Animation/BFAnimInstance.h"
 #include "Components/BoxComponent.h"
 #include "DrawDebugHelpers.h"
 #include "UI/BFUserWidgetBase.h"
@@ -82,7 +84,6 @@ void ABFWeaponBase::Fire()
 	{
 		SingleShot();
 		WeaponOwner->OnFire();
-		GetWorldTimerManager().SetTimer(ResetPlayerFireTimerHandle, this, &ABFWeaponBase::ResetPlayerFire, 1.0f, false, 0.3f);
 		GetWorldTimerManager().SetTimer(WeaponSpreadTimerHandle, this, &ABFWeaponBase::DescressSpread, GetWorld()->GetDeltaSeconds(), true, 0.001f);
 	}
 	if (FireMode == EFireMode::ThreeShot)
@@ -112,7 +113,21 @@ void ABFWeaponBase::SingleShot()
 	{
 		SpawnProjectile();
 		WeaponOwner->OnFire();
-		GetWorldTimerManager().SetTimer(ResetPlayerFireTimerHandle, this, &ABFWeaponBase::ResetPlayerFire, 1.0f, false, 0.05f);
+		if (WeaponOwner->GetViewMode() == EViewMode::FPS)
+		{
+			if (WeaponOwner->GetCharacterIsAming())
+			{
+				WeaponOwner->PlayAnimMontage(FPSWeaponAnim.ADSShootingAnim, 1.0f, NAME_None);
+			}
+			else {
+				WeaponOwner->PlayAnimMontage(FPSWeaponAnim.ShootingAnim, 1.0f, NAME_None);
+			}
+		}
+		Cast<UBFAnimInstance>(WeaponOwner->CharacterMesh->GetAnimInstance())->bisShooting = true;
+		if (!GetWorldTimerManager().IsTimerActive(ResetPlayerFireTimerHandle))
+		{
+			GetWorldTimerManager().SetTimer(ResetPlayerFireTimerHandle, this, &ABFWeaponBase::ResetPlayerFire, 1.0f, false, 0.1f);
+		}
 		if (SilencerSlot.AttachmentInstance)
 		{
 			WeaponOwner->MakeNoise(FireLoudness*0.5f, WeaponOwner, WeaponMeshComponent->GetSocketLocation(WeaponMeshComponent->MuzzleFlashSocket), NoiseRadius*0.5f);
@@ -178,12 +193,20 @@ void ABFWeaponBase::ReloadWeapon()
 {
 	if (CheckCanReload())
 	{
+		UAnimMontage* ReloadAnim = nullptr;
+		if (WeaponOwner->GetViewMode() == EViewMode::FPS)
+		{
+			ReloadAnim = FPSWeaponAnim.ReloadAnim;
+		}
+		if (WeaponOwner->GetViewMode() == EViewMode::TPS)
+		{
+			ReloadAnim = WeaponAnim.ReloadAnim;
+		}
 		float AnimDuration = 0.5f; //safe duration 
-		AnimDuration = WeaponOwner->PlayAnimMontage(WeaponAnim.ReloadAnim, 1.f, NAME_None);
+		AnimDuration = WeaponOwner->PlayAnimMontage(ReloadAnim, 1.f, NAME_None);
 		WeaponMeshComponent->PlayAnimation(WeaponGunAnim.ReloadAnim, false);
 		WeaponState = EWeaponState::Reload;
 		ReceiveReloading();
-		CrosshairWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
 		GetWorldTimerManager().SetTimer(ReloadWeaponTimerHandle, this, &ABFWeaponBase::FinishRealoadWeapon, 1.f, false, AnimDuration);
 	}
 }
@@ -260,6 +283,26 @@ FHitResult ABFWeaponBase::TraceDetect()
 
 FVector ABFWeaponBase::AdjustProjectileDirection(FHitResult & TraceHit, FVector MuzzleLocation)
 {
+	if (WeaponOwner->GetViewMode() == EViewMode::FPS)
+	{
+		if (!WeaponOwner->GetCharacterIsAming())
+		{
+			if (TraceHit.bBlockingHit)
+			{
+				const FVector HitLocation = TraceHit.ImpactPoint;
+				FVector AdjustDirection = HitLocation - MuzzleLocation;
+				const float DotProduct = FVector::DotProduct(HitLocation, MuzzleLocation);
+				//DrawDebugLine(GetWorld(), MuzzleLocation, (MuzzleLocation + AdjustDirection * 2000), FColor::Red, false, 2.f, (uint8)'\000', 0.5f);
+#if WITH_EDITOR
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("using adjust direction"));
+#endif
+				return AdjustDirection;
+
+			}
+			return  GetAimDirection();
+		}
+		return  GetAimDirection();
+	}
 	if (TraceHit.bBlockingHit)
 	{
 		const FVector HitLocation = TraceHit.ImpactPoint;
@@ -403,6 +446,7 @@ void ABFWeaponBase::SelfDestroy()
 void ABFWeaponBase::ResetPlayerFire()
 {
 	WeaponOwner->OnResetFire();
+	Cast<UBFAnimInstance>(WeaponOwner->CharacterMesh->GetAnimInstance())->bisShooting = false;
 }
 
 void ABFWeaponBase::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -478,25 +522,7 @@ void ABFWeaponBase::DescressSpread()
 
 void ABFWeaponBase::CreateWeaponWidgetInstances()
 {
-	if (WeaponOwner&&!bIsInMenuMode)
-	{
-		if (CrosshairWidgetClass)
-		{
-			CrosshairWidgetInstance = CreateWidget<UBFUserWidgetBase>(WeaponOwner->GetPlayerController(), CrosshairWidgetClass);
-		}
-		if (HitTargetFeedBackWidgetClass)
-		{
-			HitTargetFeedBackWidgetInstance = CreateWidget<UBFUserWidgetBase>(WeaponOwner->GetPlayerController(), HitTargetFeedBackWidgetClass);
-		}
-		if (WeaponInfoWidgetClass)
-		{
-			HitTargetFeedBackWidgetInstance = CreateWidget<UBFUserWidgetBase>(WeaponOwner->GetPlayerController(), WeaponInfoWidgetClass);
-		}
-		if (ReloadWidgetClass)
-		{
-			ReloadingWidgetInstance = CreateWidget<UBFUserWidgetBase>(WeaponOwner->GetPlayerController(), ReloadWidgetClass);
-		}
-	}
+	
 }
 
 void ABFWeaponBase::SetupAttachments()
@@ -528,16 +554,13 @@ void ABFWeaponBase::ReceiveReloadFinished()
 {
 	if (!bIsInMenuMode)
 	{
-		CrosshairWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+	
 	}
 }
 
 void ABFWeaponBase::ReceiveReloading()
 {
-	if (!bIsInMenuMode)
-	{
-		CrosshairWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
-	}
+
 }
 
 void ABFWeaponBase::ReceiveEquiping()
@@ -547,48 +570,12 @@ void ABFWeaponBase::ReceiveEquiping()
 
 void ABFWeaponBase::ReciveFinishEquiping()
 {
-	if (!bIsInMenuMode)
-	{
-		if (CrosshairWidgetInstance)
-		{
-			CrosshairWidgetInstance->AddToViewport(0);
-		}
-		if (ReloadingWidgetInstance)
-		{
-			ReloadingWidgetInstance->AddToViewport(0); 
-		}
-		if (HitTargetFeedBackWidgetInstance)
-		{
-			HitTargetFeedBackWidgetInstance->AddToViewport(0);
-		}
-		if (WeaponInfoWidgetInstance)
-		{
-			WeaponInfoWidgetInstance->AddToViewport(0);
-		}
-	}
+
 }
 
 void ABFWeaponBase::ReceiveUnequiping()
 {
-	if (!bIsInMenuMode)
-	{
-		if (CrosshairWidgetInstance)
-		{
-			CrosshairWidgetInstance->RemoveFromViewport();
-		}
-		if (ReloadingWidgetInstance)
-		{
-			ReloadingWidgetInstance->RemoveFromViewport();
-		}
-		if (HitTargetFeedBackWidgetInstance)
-		{
-			HitTargetFeedBackWidgetInstance->RemoveFromViewport();
-		}
-		if (WeaponInfoWidgetInstance)
-		{
-			WeaponInfoWidgetInstance->RemoveFromViewport();
-		}
-	}
+	
 }
 
 void ABFWeaponBase::SetIsMenuMode(bool IsInMenuMode)

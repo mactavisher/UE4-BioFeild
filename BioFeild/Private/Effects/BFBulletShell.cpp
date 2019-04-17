@@ -19,22 +19,21 @@ ABFBulletShell::ABFBulletShell(const FObjectInitializer& ObjectInitailizer) :Sup
 	FScriptDelegate Delegate;
 	Delegate.BindUFunction(this, "PlayShellCollisionSound");
 	ShellParticleComp->OnParticleCollide.AddUnique(Delegate);
-	CurrentCollideCount = 0;
-	InitialLifeSpan = 5.0f;
+	InitialLifeSpan = 3.0f;
+	bIsEffectPlayed = false;
 }
 
 void ABFBulletShell::PlayShellCollisionSound(FName EventName, float EmitterTime, int32 ParticleTime, FVector Location, FVector Velocity, FVector Direction, FVector Normal, FName BoneName, UPhysicalMaterial* PhysMat)
 {
-	if (CurrentCollideCount <= 0)
+	if (!bIsEffectPlayed)
 	{
 		ABFShellImpactEffects* ShellImpactEffects = GetWorld()->SpawnActorDeferred<ABFShellImpactEffects>(ShellImpactEffectsClass, GetActorTransform());
 		if (ShellImpactEffects)
 		{
 			ShellImpactEffects->SetPhysicalMat(PhysMat);
-			ShellImpactEffects->SetCurrentCollideCount(CurrentCollideCount);
 			UGameplayStatics::FinishSpawningActor(ShellImpactEffects, GetActorTransform());
+			bIsEffectPlayed = true;
 		}
-		CurrentCollideCount++;
 	}
 }
 

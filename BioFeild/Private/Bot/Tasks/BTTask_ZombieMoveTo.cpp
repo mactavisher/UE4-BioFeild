@@ -24,10 +24,10 @@ EBTNodeResult::Type UBTTask_ZombieMoveTo::ExecuteTask(UBehaviorTreeComponent& Ow
 	{
 		ZombieController->MoveZombie(EZombieMoveType::WalkTo);
 	}
-	if (bHasReachEnemy)
+	/*if (bHasReachEnemy)
 	{
 		return Super::AbortTask(OwnerComp, NodeMemory);
-	}
+	}*/
 	return Super::ExecuteTask(OwnerComp, NodeMemory);
 }
 

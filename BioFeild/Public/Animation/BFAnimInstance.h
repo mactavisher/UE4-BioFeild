@@ -69,6 +69,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "State")
 		uint8 bisAiming:1;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "State")
+		uint8 bisShooting : 1;
+
 	UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category = "State")
 		ABFPlayerCharacter* Character;
 
@@ -87,8 +90,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SkeletalMesh")
 		UBFCharacterMovementComponent* CharacterMovementComp;
 
-	UPROPERTY(VisibleAnywhere, Category = "State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
 		EWeaponType CurrentWeaponType;
+
+	UPROPERTY(VisibleAnywhere,BlueprintReadWrite, Category = "State")
+		EWeaponNames CurrentWeaponName;
 
 	/** native update for variables tick */
 	virtual void NativeUpdateAnimation(float DeltaSeconds)override;

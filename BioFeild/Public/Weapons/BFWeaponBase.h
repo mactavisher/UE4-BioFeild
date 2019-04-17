@@ -39,6 +39,15 @@ enum class EWeaponType :uint8 {
 	Sniper                                                UMETA(DisplayName = "Sniper")
 };
 
+UENUM(BlueprintType)
+enum class EWeaponNames :uint8 {
+	AK47                                      UMETA(DisplayName = "AK47"),
+	SKS                                               UMETA(DisplayName = "SKS"),
+	ShotGun                                               UMETA(DisplayName = "ShotGun"),
+	SCAR                                                UMETA(DisplayName = "SCAR"),
+	XM8                                                   UMETA(DisplayName = "XM8")
+};
+
 /**weapon types can be assigned via blueprints*/
 UENUM(BlueprintType)
 enum class EFireMode :uint8 {
@@ -117,6 +126,30 @@ struct FWeaponAnim {
 };
 
 USTRUCT(BlueprintType)
+struct FWeaponAnim_FPS {
+
+	GENERATED_USTRUCT_BODY()
+
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
+		UAnimMontage* ReloadAnim;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
+		UAnimMontage* EquipAnim;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
+		UAnimMontage* UnEquipAnim;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
+		UAnimMontage* FirstEquipAnim;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
+		UAnimMontage* ShootingAnim;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
+		UAnimMontage* ADSShootingAnim;
+};
+
+USTRUCT(BlueprintType)
 struct FWeaponGunAnim {
 
 	GENERATED_USTRUCT_BODY()
@@ -148,8 +181,8 @@ struct FWeaponConfigData {
 	/** default value */
 	FWeaponConfigData()
 	{
-		AmmoPerClip = 500;
-		MaxAmmo = 750;
+		AmmoPerClip = 33;
+		MaxAmmo = 120;
 		TimeBetweenShots = 0.12f;
 		BaseDamage = 35.f;
 	}
@@ -212,6 +245,10 @@ class BIOFEILD_API ABFWeaponBase : public ABFInventoryItem
 	/**animation montage data for player who is using this weapon*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Type")
 		FWeaponAnim WeaponAnim;
+
+	/**animation montage data for player who is using this weapon*/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Type")
+		FWeaponAnim_FPS FPSWeaponAnim;
 
 	/**animation data for weapon self  */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Type")
@@ -325,21 +362,15 @@ private:
 	UPROPERTY()
 		uint8 bShouldShowCrossHair : 1;
 
-private:
-	UBFUserWidgetBase* CrosshairWidgetInstance;
-
-	UBFUserWidgetBase* HitTargetFeedBackWidgetInstance;
-
-	UBFUserWidgetBase* WeaponInfoWidgetInstance;
-
-	UBFUserWidgetBase* ReloadingWidgetInstance;
-
 protected:
 	/** current weapon state */
 	EWeaponState::Type WeaponState;
 
 	/** current weapon Aiming Mode */
 	EAmingMode::Type AimingMode;
+
+	/** WeaponNames */
+	EWeaponNames WeaponName;
 
 	/** projectile type used for this weapon */
 	UPROPERTY()
@@ -513,6 +544,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
 		virtual FWeaponAnim GetWeaponAnim()const { return WeaponAnim; }
 
+	/** return weapon animations data  */
+	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
+		virtual FWeaponAnim_FPS GetWeaponAnim_FPS()const { return FPSWeaponAnim; }
+
+	/** return weapon animations data  */
+	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
+		virtual EWeaponNames GetWeaponName()const { return WeaponName; }
 	/** return weapon self animations data  */
 	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
 		virtual FWeaponGunAnim GetWeaponGunAnim()const { return WeaponGunAnim; }
@@ -574,16 +612,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
 		virtual void  SetIsSelectedAsCurrent(bool bIsTure) { this->bIsSelectedCurrent = bIsTure; }
-
-	UFUNCTION(BlueprintCallable, Category = "BFWeapon||UI")
-		virtual UBFUserWidgetBase* GetCrossHairWidgetInstance()const { return CrosshairWidgetInstance; }
-
-	UFUNCTION(BlueprintCallable, Category = "BFWeapon||UI")
-		virtual UBFUserWidgetBase* GetTargetHitFeedBackWidgetInstance()const { return CrosshairWidgetInstance; }
-
-	UFUNCTION(BlueprintCallable, Category = "BFWeapon||UI")
-
-		virtual UBFUserWidgetBase* GetWeaponInfoWidgetInstace()const { return WeaponInfoWidgetInstance; }
 
 	virtual void SetWeaponSlotIndex(uint8 SlotIndex) { this->WeaponSlotIndex = SlotIndex; }
 

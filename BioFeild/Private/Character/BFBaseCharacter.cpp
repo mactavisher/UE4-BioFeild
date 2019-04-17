@@ -24,6 +24,8 @@ ABFBaseCharacter::ABFBaseCharacter(const FObjectInitializer& ObjectInitializer) 
 void ABFBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	CharacterMesh = Cast<UBFSkeletalMeshComponent>(GetMesh());
+	CharacterMoventComp = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
 }
 
 

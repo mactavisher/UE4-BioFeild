@@ -28,9 +28,11 @@ public:
 
 protected:
 
-	int32 CurrentCollideCount;
 
 	ABFWeaponBase* WeaponEjector;
+
+	UPROPERTY()
+		uint8 bIsEffectPlayed : 1;
 
 	UFUNCTION(BlueprintCallable, Category = "BulletShell")
 		virtual void PlayShellCollisionSound(FName EventName, float  EmitterTime, int32  ParticleTime, FVector  Location, FVector  Velocity, FVector Direction, FVector  Normal, FName BoneName, UPhysicalMaterial* PhysMat);

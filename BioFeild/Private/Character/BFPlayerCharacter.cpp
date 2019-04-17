@@ -20,6 +20,7 @@
 
 ABFPlayerCharacter::ABFPlayerCharacter(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer.SetDefaultSubobjectClass<UBFSkeletalMeshComponent>(ACharacter::MeshComponentName))
 {
+	ViewMode = EViewMode::FPS;
 	CameraComp = ObjectInitializer.CreateDefaultSubobject<UCameraComponent>(this, TEXT("CameraComp"));
 	CameraArmComp = ObjectInitializer.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("SprintArmComp"));
 	InventoryComponent = ObjectInitializer.CreateDefaultSubobject<UBFInventoryComponent>(this, TEXT("InventoryComp"));
@@ -99,9 +100,15 @@ void ABFPlayerCharacter::EquipWeapon()
 {
 	if (CheckCanEquip())
 	{
+		UAnimMontage* EquipAnimMotage = nullptr;
 		CurrentWeapon = WeaponToEquip;
 		float Duration = 0.5f;
-		Duration = PlayAnimMontage(CurrentWeapon->GetWeaponAnim().EquipAnim, 1.0f, NAME_None);
+		switch (ViewMode)
+		{
+		case EViewMode::FPS: EquipAnimMotage = CurrentWeapon->GetWeaponAnim_FPS().EquipAnim; break;
+		case EViewMode::TPS: EquipAnimMotage = CurrentWeapon->GetWeaponAnim().EquipAnim; break;
+		}
+		Duration = PlayAnimMontage(EquipAnimMotage, 1.0f, NAME_None);
 		CharacterActionType = ECharacterWeaponAction::Equiping;
 		GetWorldTimerManager().SetTimer(EquipWeaponTimerHanle, this, &ABFPlayerCharacter::FinishEquipWeapon, 1.0f, false, Duration*0.7f);
 	}
@@ -116,6 +123,7 @@ void ABFPlayerCharacter::FinishEquipWeapon()
 	CurrentWeapon->ReciveFinishEquiping();
 	CurrentAnimInstance->bIsArmed = true;
 	CurrentAnimInstance->CurrentWeaponType = CurrentWeapon->GetWeaponType();
+	CurrentAnimInstance->CurrentWeaponName = CurrentWeapon->GetWeaponName();
 	OnCharacterArmed();
 }
 
@@ -123,9 +131,14 @@ void ABFPlayerCharacter::UnEquipWeapon()
 {
 	if (CurrentWeapon)
 	{
+		UAnimMontage* UnEquipMontage = nullptr;
 		float Duration = 0.5f;
-		CurrentWeapon->GetCrossHairWidgetInstance()->SetVisibility(ESlateVisibility::Hidden);
-		Duration = PlayAnimMontage(CurrentWeapon->WeaponAnim.UnEquipAnim, 1.0f, NAME_None);
+		switch (ViewMode)
+		{
+		case EViewMode::FPS: UnEquipMontage = CurrentWeapon->GetWeaponAnim_FPS().EquipAnim; break;
+		case EViewMode::TPS: UnEquipMontage = CurrentWeapon->GetWeaponAnim().EquipAnim; break;
+		}
+		Duration = PlayAnimMontage(UnEquipMontage, 1.0f, NAME_None);
 		GetWorldTimerManager().SetTimer(UnequipWeaponTimerHanle, this, &ABFPlayerCharacter::FinishUnEquipWeapon, 1.0f, false, Duration*0.6);
 		CharacterActionType = ECharacterWeaponAction::UnEquiping;
 	}
@@ -152,13 +165,20 @@ void ABFPlayerCharacter::AimingDispacher()
 {
 	if (CurrentWeapon)
 	{
-		if (CurrentWeapon->GetWeaponAimingMode() == EAmingMode::Aim)
-		{
-			Aiming();
-		}
-		if (CurrentWeapon->GetWeaponAimingMode() == EAmingMode::ADS)
+		if (ViewMode == EViewMode::FPS)
 		{
 			ADS();
+		}
+		if (ViewMode == EViewMode::TPS)
+		{
+			if (CurrentWeapon->GetWeaponAimingMode() == EAmingMode::Aim)
+			{
+				Aiming();
+			}
+			if (CurrentWeapon->GetWeaponAimingMode() == EAmingMode::ADS)
+			{
+				ADS();
+			}
 		}
 	}
 }
@@ -167,17 +187,21 @@ void ABFPlayerCharacter::StopAimingDispacher()
 {
 	if (CurrentWeapon)
 	{
-		if (CurrentWeapon)
-		{
-			if (CurrentWeapon->GetWeaponAimingMode() == EAmingMode::Aim)
+			if (ViewMode == EViewMode::TPS)
 			{
-				StopAiming();
+				if (CurrentWeapon->GetWeaponAimingMode() == EAmingMode::Aim)
+				{
+					StopAiming();
+				}
+				if (CurrentWeapon->GetWeaponAimingMode() == EAmingMode::ADS)
+				{
+					StopADS();
+				}
 			}
-			if (CurrentWeapon->GetWeaponAimingMode() == EAmingMode::ADS)
+			if (ViewMode == EViewMode::FPS)
 			{
 				StopADS();
 			}
-		}
 	}
 }
 
@@ -478,26 +502,40 @@ void ABFPlayerCharacter::FireWeapon_Implementation()
 	{
 		CurrentWeapon->Fire();
 	}
+	if (CurrentWeapon&&ViewMode == EViewMode::FPS)
+	{
+		CurrentWeapon->Fire();
+	}
 }
 
 void ABFPlayerCharacter::StopADS_Implementation()
 {
-	CameraComp->SetupAttachment(CameraArmComp, NAME_None);
+	if (ViewMode == EViewMode::TPS)
+	{
+		CameraComp->SetupAttachment(CameraArmComp, NAME_None);
+	}
 	CharacterMesh->GetCurrentAnimInstance()->bisADS = false;
+	bIsAiming = false;
+	CharacterMesh->GetCurrentAnimInstance()->bisAiming = false;
 }
 
 void ABFPlayerCharacter::ADS_Implementation()
 {
-	const FVector IronSightLocation = CharacterMesh->GetSocketLocation(CurrentWeapon->WeaponMeshComponent->CameraSocket);
-	CameraComp->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, CharacterMesh->SocketNames.IronSightSocket);
-	CharacterMesh->GetCurrentAnimInstance()->bisADS = true;
+	if (ViewMode == EViewMode::TPS) 
+	{
+		const FVector IronSightLocation = CharacterMesh->GetSocketLocation(CurrentWeapon->WeaponMeshComponent->CameraSocket);
+		CameraComp->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, CharacterMesh->SocketNames.IronSightSocket);
+	}
+		CharacterMesh->GetCurrentAnimInstance()->bisADS = true;
+		CharacterMesh->GetCurrentAnimInstance()->bisAiming = true;
+		bIsAiming = true;
 }
 
 void ABFPlayerCharacter::StopAiming_Implementation()
 {
 	if (CurrentWeapon)
 	{
-		bUseControllerRotationYaw = false;
+		bUseControllerRotationYaw = true;
 		CharacterMesh->GetCurrentAnimInstance()->bisAiming = false;
 		UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
 		if (CharacterMovement)

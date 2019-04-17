@@ -19,7 +19,6 @@ ABFShellImpactEffects::ABFShellImpactEffects(const FObjectInitializer& ObjectIni
 void ABFShellImpactEffects::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	DeterminSoundData();
 	USoundCue* ImpactSound = nullptr;
 	ImpactSound = GetShellImpactSound();
 	if (ImpactSound)
@@ -34,33 +33,18 @@ USoundCue* ABFShellImpactEffects::GetShellImpactSound()
 	USoundCue* SelectedSound = nullptr;
 	switch (SurfaceType)
 	{
-	case SurfaceType_Default:SelectedSound = CurrentSelectSoundData.DefaultSound; break;
-	case SurfaceType_Dirt:SelectedSound = CurrentSelectSoundData.DirtImpactSound; break;
-	case SurfaceType_Concret:SelectedSound = CurrentSelectSoundData.DirtImpactSound; break;
-	case SurfaceType_ThinMetal:SelectedSound = CurrentSelectSoundData.MetalImpactSound; break;
-	case SurfaceType_ThickMetal:SelectedSound = CurrentSelectSoundData.MetalImpactSound; break;
-	case SurfaceType_Grass:SelectedSound = CurrentSelectSoundData.DirtImpactSound; break;
-	case SurfaceType_Glass:SelectedSound = CurrentSelectSoundData.GlassImpactSound; break;
-	case SurfaceType_Water:SelectedSound = CurrentSelectSoundData.WaterImpactSound; break;
-	case SurfaceType_Wood:SelectedSound = CurrentSelectSoundData.WoodImpactSound; break;
-	case SurfaceType_Alsphat:SelectedSound = CurrentSelectSoundData.DefaultSound; break;
+	case SurfaceType_Default:SelectedSound = ShellImactSoundData.DefaultSound; break;
+	case SurfaceType_Dirt:SelectedSound = ShellImactSoundData.DirtImpactSound; break;
+	case SurfaceType_Concret:SelectedSound = ShellImactSoundData.DirtImpactSound; break;
+	case SurfaceType_ThinMetal:SelectedSound = ShellImactSoundData.MetalImpactSound; break;
+	case SurfaceType_ThickMetal:SelectedSound = ShellImactSoundData.MetalImpactSound; break;
+	case SurfaceType_Grass:SelectedSound = ShellImactSoundData.DirtImpactSound; break;
+	case SurfaceType_Glass:SelectedSound = ShellImactSoundData.GlassImpactSound; break;
+	case SurfaceType_Water:SelectedSound = ShellImactSoundData.WaterImpactSound; break;
+	case SurfaceType_Wood:SelectedSound = ShellImactSoundData.WoodImpactSound; break;
+	case SurfaceType_Alsphat:SelectedSound = ShellImactSoundData.DefaultSound; break;
 	}
 	return SelectedSound;
 }
 
-void ABFShellImpactEffects::DeterminSoundData()
-{
-	if (ShellImactSoundDatas.Num() <= 1)
-	{
-		CurrentSelectSoundData = ShellImactSoundDatas[0];
-	}
-	else {
-		switch (CurrentCollideCount)
-		{
-		case 0:CurrentSelectSoundData = ShellImactSoundDatas[0]; break;
-		case 1:CurrentSelectSoundData = ShellImactSoundDatas[1]; break;
-		case 2: CurrentSelectSoundData = ShellImactSoundDatas[2]; break;
-		}
-	}
-}
 

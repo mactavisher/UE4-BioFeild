@@ -39,9 +39,8 @@ void ABFZombieController::WalkTo()
 {
 	//const FName EnemyLocationkey = "EnemyLocation";
 	//const FVector EnemyLocation = GetBlackboardComponent()->GetValueAsVector(EnemyLocationkey);
-	PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 50.f;
 	const FVector ZombieLocation = PossessedZombie->GetActorLocation();
-	PossessedZombie->AddMovementInput(EnemyLocation-ZombieLocation, 1.0f, true);
+	PossessedZombie->AddMovementInput(EnemyLocation - ZombieLocation, 1.0f, true);
 }
 
 void ABFZombieController::ChargeTo()
@@ -61,16 +60,22 @@ void ABFZombieController::CrawlerTo()
 void ABFZombieController::AttackPlayer()
 {
 	const bool bisZombieAttacking = PossessedZombie->GetIsZombieAttacking();
-
+	if (!bisZombieAttacking)
+	{
 		PossessedZombie->SetIsZombieAttacking(true);
 		Cast<UBFZombieAnimation>(PossessedZombie->GetMesh()->GetAnimInstance())->bCanAttack = true;
 		PossessedZombie->PlayAnimMontage(PossessedZombie->AttackAnim, 1.0f, NAME_None);
+	}
 }
 
 void ABFZombieController::StopAttack()
 {
-	PossessedZombie->SetIsZombieAttacking(true);
+	PossessedZombie->SetIsZombieAttacking(false);
 	Cast<UBFZombieAnimation>(PossessedZombie->GetMesh()->GetAnimInstance())->bCanAttack = false;
+	if(Cast<UBFZombieAnimation>(PossessedZombie->GetMesh()->GetAnimInstance())->Montage_IsPlaying(PossessedZombie->AttackAnim))
+	{
+		Cast<UBFZombieAnimation>(PossessedZombie->GetMesh()->GetAnimInstance())->Montage_Stop(0.5f, PossessedZombie->AttackAnim);
+	}
 	PossessedZombie->DisableLeftHandDamage();
 	PossessedZombie->DisableRighthandDamage();
 }
@@ -310,6 +315,12 @@ void ABFZombieController::MoveZombie(EZombieMoveType SpecifyMoveType)
 {
 	//ZombieCurrentMoveType = SpecifyMoveType;
 	const EZombieMoveType ZombieCurrentMoveType = PossessedZombie->GetZombieMoveType();
+	switch (ZombieCurrentMoveType)
+	{
+	default:PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 50.f; break;
+	case EZombieMoveType::WalkTo:PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 50.f;break;
+	case EZombieMoveType::ChargeTo: PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 300.f;break;
+	}
 	switch (ZombieCurrentMoveType)
 	{
 	default:GetWorldTimerManager().SetTimer(AddControllerInputHandle, this, &ABFZombieController::WalkTo, 0.01f, true, 0.f); break;
