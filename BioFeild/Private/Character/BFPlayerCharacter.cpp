@@ -22,21 +22,21 @@ ABFPlayerCharacter::ABFPlayerCharacter(const FObjectInitializer& ObjectInitializ
 {
 	ViewMode = EViewMode::FPS;
 	CameraComp = ObjectInitializer.CreateDefaultSubobject<UCameraComponent>(this, TEXT("CameraComp"));
-	CameraArmComp = ObjectInitializer.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("SprintArmComp"));
+	Mesh3PComp=ObjectInitializer.CreateDefaultSubobject<UBFSkeletalMeshComponent>(this, TEXT("Character3pMesh"));
+	Mesh3PComp->SetupAttachment(RootComponent);
 	InventoryComponent = ObjectInitializer.CreateDefaultSubobject<UBFInventoryComponent>(this, TEXT("InventoryComp"));
 	AimingFOVTimeLineComponent = ObjectInitializer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("AimingFOVTimelineComp"));
 	NoiseEmmiterComp = ObjectInitializer.CreateDefaultSubobject<UPawnNoiseEmitterComponent>(this, TEXT("NoiseEmmiter"));
+	CameraComp->SetupAttachment(GetCapsuleComponent());
+	CameraComp->AddRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight + 25.f));
 	AimingFOVTimeLineComponent->SetComponentTickEnabled(true);
-	CameraArmComp->TargetArmLength = 110.f;
-	CameraArmComp->bUsePawnControlRotation = true;
-	CameraArmComp->SetupAttachment(RootComponent);
-	CameraComp->SetupAttachment(CameraArmComp);
 	PrimaryActorTick.bCanEverTick = true;
 	bWantsToSwapWeapon = false;
 	CharacterHeartBeatData.bShouldCalHeartBeatRate = true;
 	CharacterActionType = ECharacterWeaponAction::Idle;
 	OnUnequipWeapon.AddDynamic(this, &ABFPlayerCharacter::OnWeaponUnequiped);
 	AimingFOVTimelineDelegate.BindUFunction(this, "AimingFOVDelegateCallBack");
+	bUseControllerRotationPitch = false;
 
 }
 
@@ -46,6 +46,12 @@ void ABFPlayerCharacter::BeginPlay()
 	InventoryComponent->SetOwnerCharacter(this);
 	InventoryComponent->initializeAvailableWeapon();
 	CurrentAnimInstance = Cast<UBFAnimInstance>(GetBFSkeletalMesh()->GetAnimInstance());
+	CharacterMesh->SetupAttachment(CameraComp);
+	CharacterMesh->SetOnlyOwnerSee(true);
+	Mesh3PComp->SetOwnerNoSee(true);
+	Mesh3PComp->SetOnlyOwnerSee(false);
+	Mesh3PComp->bOnlyOwnerSee = false;
+	Mesh3PComp->bOwnerNoSee = true;
 }
 
 void ABFPlayerCharacter::Tick(float DeltaTime)
@@ -56,6 +62,7 @@ void ABFPlayerCharacter::Tick(float DeltaTime)
 		CalculateTurnData();
 	}
 	DetectItem();
+	Update1pMeshTransform();
 	//AimingFOVTimeLineComponent->TickComponent(DeltaTime, ELevelTick::LEVELTICK_TimeOnly, NULL);
 }
 
@@ -66,6 +73,7 @@ void ABFPlayerCharacter::PostInitializeComponents()
 	Cast<UBFSkeletalMeshComponent>(GetMesh())->OnCanStep.AddDynamic(this, &ABFPlayerCharacter::HandleStepOn);
 	bUseControllerRotationYaw = true;
 	bIsArmed = false;
+	RegisterAllComponents();
 }
 
 /** Player input bindings */
@@ -110,6 +118,7 @@ void ABFPlayerCharacter::EquipWeapon()
 		}
 		Duration = PlayAnimMontage(EquipAnimMotage, 1.0f, NAME_None);
 		CharacterActionType = ECharacterWeaponAction::Equiping;
+		const float CameraZoffSet = WeaponToEquip->
 		GetWorldTimerManager().SetTimer(EquipWeaponTimerHanle, this, &ABFPlayerCharacter::FinishEquipWeapon, 1.0f, false, Duration*0.7f);
 	}
 }
@@ -165,21 +174,7 @@ void ABFPlayerCharacter::AimingDispacher()
 {
 	if (CurrentWeapon)
 	{
-		if (ViewMode == EViewMode::FPS)
-		{
-			ADS();
-		}
-		if (ViewMode == EViewMode::TPS)
-		{
-			if (CurrentWeapon->GetWeaponAimingMode() == EAmingMode::Aim)
-			{
-				Aiming();
-			}
-			if (CurrentWeapon->GetWeaponAimingMode() == EAmingMode::ADS)
-			{
-				ADS();
-			}
-		}
+		ADS();
 	}
 }
 
@@ -187,21 +182,7 @@ void ABFPlayerCharacter::StopAimingDispacher()
 {
 	if (CurrentWeapon)
 	{
-			if (ViewMode == EViewMode::TPS)
-			{
-				if (CurrentWeapon->GetWeaponAimingMode() == EAmingMode::Aim)
-				{
-					StopAiming();
-				}
-				if (CurrentWeapon->GetWeaponAimingMode() == EAmingMode::ADS)
-				{
-					StopADS();
-				}
-			}
-			if (ViewMode == EViewMode::FPS)
-			{
-				StopADS();
-			}
+		StopADS();
 	}
 }
 
@@ -479,6 +460,21 @@ void ABFPlayerCharacter::DetectItem()
 	//#endif
 }
 
+void ABFPlayerCharacter::Update1pMeshTransform()
+{
+	UBFSkeletalMeshComponent* DefMesh1P = Cast<UBFSkeletalMeshComponent>(GetClass()->GetDefaultSubobjectByName(TEXT("Mesh")));
+	const FMatrix DefMeshLS = FRotationTranslationMatrix(DefMesh1P->RelativeRotation, DefMesh1P->RelativeLocation);
+	const FMatrix LocalToWorld = ActorToWorld().ToMatrixWithScale();
+	// Mesh rotating code expect uniform scale in LocalToWorld matrix
+	const FRotator RotCameraPitch(CameraComp->GetComponentRotation().Pitch, 0.0f, 0.0f);
+	const FRotator RotCameraYaw(0.0f, CameraComp->GetComponentRotation().Yaw, 0.0f);
+	const FMatrix LeveledCameraLS = FRotationTranslationMatrix(RotCameraYaw, CameraComp->GetComponentLocation()) * LocalToWorld.Inverse();
+	const FMatrix PitchedCameraLS = FRotationMatrix(RotCameraPitch) * LeveledCameraLS;
+	const FMatrix MeshRelativeToCamera = DefMeshLS * LeveledCameraLS.Inverse();
+	const FMatrix PitchedMesh = MeshRelativeToCamera * PitchedCameraLS;
+	CharacterMesh->SetRelativeLocationAndRotation(PitchedMesh.GetOrigin(), PitchedMesh.Rotator());
+}
+
 void ABFPlayerCharacter::AimingFOVDelegateCallBack()
 {
 	float TimelinePosition = AimingFOVTimeLineComponent->GetPlaybackPosition();
@@ -492,17 +488,14 @@ void ABFPlayerCharacter::StopFireWeapon_Implementation()
 {
 	if (CurrentWeapon)
 	{
-		CurrentWeapon->BurstShotFinished();
+	//	CurrentWeapon->BurstShotFinished();
+		CurrentWeapon->StopFire();
 	}
 }
 
 void ABFPlayerCharacter::FireWeapon_Implementation()
 {
-	if (CurrentWeapon&&bIsAiming)
-	{
-		CurrentWeapon->Fire();
-	}
-	if (CurrentWeapon&&ViewMode == EViewMode::FPS)
+	if (CurrentWeapon)
 	{
 		CurrentWeapon->Fire();
 	}
@@ -510,37 +503,15 @@ void ABFPlayerCharacter::FireWeapon_Implementation()
 
 void ABFPlayerCharacter::StopADS_Implementation()
 {
-	if (ViewMode == EViewMode::TPS)
-	{
-		CameraComp->SetupAttachment(CameraArmComp, NAME_None);
-	}
-	CharacterMesh->GetCurrentAnimInstance()->bisADS = false;
-	bIsAiming = false;
-	CharacterMesh->GetCurrentAnimInstance()->bisAiming = false;
-}
-
-void ABFPlayerCharacter::ADS_Implementation()
-{
-	if (ViewMode == EViewMode::TPS) 
-	{
-		const FVector IronSightLocation = CharacterMesh->GetSocketLocation(CurrentWeapon->WeaponMeshComponent->CameraSocket);
-		CameraComp->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, CharacterMesh->SocketNames.IronSightSocket);
-	}
-		CharacterMesh->GetCurrentAnimInstance()->bisADS = true;
-		CharacterMesh->GetCurrentAnimInstance()->bisAiming = true;
-		bIsAiming = true;
-}
-
-void ABFPlayerCharacter::StopAiming_Implementation()
-{
 	if (CurrentWeapon)
 	{
 		bUseControllerRotationYaw = true;
-		CharacterMesh->GetCurrentAnimInstance()->bisAiming = false;
+		CharacterMesh->GetCurrentAnimInstance()->bisADS = false;
+		CurrentWeapon->ResetAdjustedCamera();
 		UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
 		if (CharacterMovement)
 		{
-			bIsAiming = false;
+			bIsADS = false;
 			if (bIsCrouched)
 			{
 				CharacterMovement->SetCrouchSpeed();
@@ -551,30 +522,31 @@ void ABFPlayerCharacter::StopAiming_Implementation()
 	}
 }
 
-void ABFPlayerCharacter::Aiming_Implementation()
+void ABFPlayerCharacter::ADS_Implementation()
 {
-	if (CurrentWeapon)
-	{
-		bUseControllerRotationYaw = true;
-		CharacterMesh->GetCurrentAnimInstance()->bisAiming = true;
-		UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
-		if (CharacterMovement)
+		if (CurrentWeapon)
 		{
-			bIsAiming = true;
-			if (bIsCrouched)
+			bUseControllerRotationYaw = true;
+			CharacterMesh->GetCurrentAnimInstance()->bisADS = true;
+			UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
+			CurrentWeapon->AdjustCamera();
+			if (CharacterMovement)
 			{
-				const float AimingSpeedModifier = CharacterMovement->AimingSpeedModifier;
-				const float CrouchSpeedModifier = CharacterMovement->CrouchSpeedModifier;
-				CharacterMovement->MaxWalkSpeed = CharacterMovement->GetDefaultMaxWalkSpeed()*(AimingSpeedModifier + CrouchSpeedModifier)*0.5f;
+				bIsADS = true;
+				if (bIsCrouched)
+				{
+					const float AimingSpeedModifier = CharacterMovement->AimingSpeedModifier;
+					const float CrouchSpeedModifier = CharacterMovement->CrouchSpeedModifier;
+					CharacterMovement->MaxWalkSpeed = CharacterMovement->GetDefaultMaxWalkSpeed()*(AimingSpeedModifier + CrouchSpeedModifier)*0.5f;
+				}
+				CharacterMovement->SetAimingSpeed();
 			}
-			CharacterMovement->SetAimingSpeed();
+			if (AimingFOVTimeLineComponent)
+			{
+				AimingFOVTimeLineComponent->AddInterpFloat(AimingFOVCurve, AimingFOVTimelineDelegate);
+				AimingFOVTimeLineComponent->Play();
+			}
 		}
-		if (AimingFOVTimeLineComponent)
-		{
-			AimingFOVTimeLineComponent->AddInterpFloat(AimingFOVCurve, AimingFOVTimelineDelegate);
-			AimingFOVTimeLineComponent->Play();
-		}
-	}
 }
 
 void ABFPlayerCharacter::MoveRight(float Value)

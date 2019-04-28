@@ -26,7 +26,7 @@ bool UBFHealthComponent::CheckIsLowHealth()
 
 void UBFHealthComponent::BeginPlay()
 {
-
+	Super::BeginPlay();
 }
 
 void UBFHealthComponent::SetHealth(float Health)

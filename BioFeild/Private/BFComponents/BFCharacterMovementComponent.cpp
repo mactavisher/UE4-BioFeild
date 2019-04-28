@@ -14,6 +14,11 @@ UBFCharacterMovementComponent::UBFCharacterMovementComponent(const FObjectInitia
 	MaxAcceleration = 350.f;
 }
 
+void UBFCharacterMovementComponent::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 void UBFCharacterMovementComponent::SetSprintSpeed()
 {
 	MaxAcceleration = 600.f;

@@ -92,3 +92,8 @@ ABFWeaponBase* UBFInventoryComponent::GiveDefaultWeapon()
 	}
 	return WeaponToGive;
 }
+
+void UBFInventoryComponent::BeginPlay()
+{
+	Super::BeginPlay();
+}

@@ -112,7 +112,7 @@ struct FWeaponAnim {
 
 	GENERATED_USTRUCT_BODY()
 
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
 		UAnimMontage* ReloadAnim;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
@@ -130,7 +130,7 @@ struct FWeaponAnim_FPS {
 
 	GENERATED_USTRUCT_BODY()
 
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
 		UAnimMontage* ReloadAnim;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
@@ -182,8 +182,8 @@ struct FWeaponConfigData {
 	FWeaponConfigData()
 	{
 		AmmoPerClip = 33;
-		MaxAmmo = 120;
-		TimeBetweenShots = 0.12f;
+		MaxAmmo = 250;
+		TimeBetweenShots = 0.13f;
 		BaseDamage = 35.f;
 	}
 };
@@ -193,17 +193,20 @@ struct FWeaponSpreadData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BFWeapon")
 		float WeaponSpreadBase;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BFWeapon")
 		float WeaponSpreadIncrement;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BFWeapon")
 		float WeaponDecressment;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BFWeapon")
 		float WeaponSpreadMax;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BFWeapon")
+		float CurrentWeaponSpread;
 
 	/**  defaults value  */
 	FWeaponSpreadData()
@@ -211,15 +214,14 @@ struct FWeaponSpreadData
 		WeaponSpreadBase = 0.f;
 		WeaponSpreadIncrement = 1.f;
 		WeaponDecressment = 2.f;
-		WeaponSpreadMax = 5.f;
+		WeaponSpreadMax = 10.f;
+		CurrentWeaponSpread = 0.f;
 	}
 };
 
 /**
 *   base weapon class for sub weapons to inherited from
 */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponOverlapSignature, ABFWeaponBase*, Weapon);
-
 UCLASS()
 class BIOFEILD_API ABFWeaponBase : public ABFInventoryItem
 {
@@ -230,7 +232,7 @@ class BIOFEILD_API ABFWeaponBase : public ABFInventoryItem
 		UBFWeaponMeshComponent*  WeaponMeshComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WeponMesh", meta = (AllowPrivateAccess = "true"))
-		UBoxComponent* InteractBox;
+		UStaticMeshComponent* ScopeHolderMeshComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ZoomingTimeLineComp", meta = (AllowePrivateAccess = "true"))
 		UTimelineComponent* FOVTimeLineComp;
@@ -302,9 +304,6 @@ class BIOFEILD_API ABFWeaponBase : public ABFInventoryItem
 	/** determine whether to play a weapon that first time equip , such as pick up a new weapon  */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 		bool bShouldPlayFirstEquipedAnim;
-
-	UPROPERTY(BlueprintAssignable, Category = "WeaponEvents")
-		FOnWeaponOverlapSignature OnWeaponBeginOverlap;
 
 	
 	////////////////////////////////////
@@ -410,17 +409,9 @@ protected:
 	/** timer for reset fire */
 	FTimerHandle ResetPlayerFireTimerHandle;
 
-	/** timer for three contentious shot */
-	FTimerHandle ThreeShotTimerhanle;
-
-	/** timer for burst weapon */
-	FTimerHandle BurstShotTimerHandle;
-
 	/** timer for destroy self after dropped or spawned but not picked up  */
 	FTimerHandle DestroySelfTimerHandle;
 
-	/** weapon spread timer handle */
-	FTimerHandle WeaponSpreadTimerHandle;
 
 	FOnTimelineFloat RecoilPlayerDelegate;
 
@@ -432,8 +423,9 @@ protected:
 	/** record the last fire time */
 	float LastFireTime;
 
-	/** current fire spread value */
-	float CurrentSpread;
+	/** adjust camera z off set to adapt  view location */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera")
+		float CameraZOffSet;
 
 	/** is this weapon in menu mode */
 
@@ -453,11 +445,13 @@ public:
 	/** general fire method called from other classes  */
 	virtual void Fire();
 
+	virtual void StopFire();
+
 	/** one shot on each click */
-	virtual void SingleShot();
+	//virtual void SingleShot();
 
 	/** burst shot with timer set up */
-	virtual void BurstShotFinished();
+	//virtual void BurstShotFinished();
 
 	/** reload weapon */
 	virtual void ReloadWeapon();
@@ -521,22 +515,6 @@ public:
 
 	virtual void ResetPlayerFire();
 
-	/** handle weapon interact event fired */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon Events")
-		void NotifyBurst();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon Events")
-		void NotifyShot();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon Events")
-		void NotifyBurstStoped();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon Events")
-		void NotifyShotEnded();
-
-	UFUNCTION()
-		virtual void OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
-
 	/** return current aiming mode  */
 	virtual EAmingMode::Type GetWeaponAimingMode()const { return AimingMode; }
 
@@ -574,8 +552,10 @@ public:
 	/** play sound and particle effect when firing  */
 	virtual void PlayFireEffects();
 
+	virtual void SingleShot();
+
 	/** return this weapon type  */
-	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
+	UFUNCTION(BlueprintCallable, Category = "BFWeapon") 
 		EWeaponType GetWeaponType()const { return WeaponType; }
 
 	/** return this weapon config data   */
@@ -595,11 +575,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
 		virtual void SetAmmoPerClip(int32 NewClipSize) { WeaponConfigData.AmmoPerClip = NewClipSize; }
 
-	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
-		virtual  float GetBurstShotEscapeTime()const;
-
-	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
-		virtual float GetCurrentWeaponSpread()const { return CurrentSpread; }
+	//UFUNCTION(BlueprintCallable, Category = "BFWeapon")
+	//	virtual  float GetBurstShotEscapeTime()const;
 
 	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
 		virtual FVector GetAimDirection();
@@ -616,10 +593,6 @@ public:
 	virtual void SetWeaponSlotIndex(uint8 SlotIndex) { this->WeaponSlotIndex = SlotIndex; }
 
 	virtual uint8 GetWeaponSlotIndex()const { return WeaponSlotIndex; }
-
-	virtual void IncreaseSpread();
-
-	virtual void DescressSpread();
 
 	virtual void CreateWeaponWidgetInstances();
 
@@ -648,4 +621,18 @@ public:
 	virtual void ReceiveDetected(class AActor* DetectedBy, class  ABFBaseCharacter* DectectedCharacter, class ABFPlayerController* DectedPlayer)override;
 
 	virtual void NotifyReaction(class AActor* NotifiedActor)override;
+
+	virtual void AdjustCamera();
+
+	virtual void SetLastFireTime(float TimeSeconds) { LastFireTime = TimeSeconds; }
+
+	virtual void ResetAdjustedCamera();
+
+	virtual FWeaponSpreadData GetWeaponSpreadData() { return WeaponSpreadData; }
+
+	virtual float GetLastFireTime()const { return LastFireTime; }
+
+	virtual  float GetCurrentWeaponSpread()const { return WeaponSpreadData.CurrentWeaponSpread; }
+
+	virtual void SetCurrentWeaponSpread(float Value) { WeaponSpreadData.CurrentWeaponSpread = Value; }
 };

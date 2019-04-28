@@ -48,7 +48,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-private:
+protected:
 	/** weapon which owns this Scope */
 	UPROPERTY()
 		ABFWeaponBase* WeaponOwner;

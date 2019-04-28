@@ -47,10 +47,10 @@ void ABFBaseCharacter::PostInitializeComponents()
 	bUseControllerRotationYaw = false;
 	CharacterVoiceComponent->SetOwner(this);
 	bIsDead = false;
-	//bind event dispatcher when components are initialized 
 	HealthComponent->OnCharacterShouldDie.AddDynamic(this, &ABFBaseCharacter::HandleDeath);
 	HealthComponent->OnLowHealth.AddDynamic(this, &ABFBaseCharacter::OnLowHealth);
 	HealthComponent->OnHealthReduced.AddDynamic(this, &ABFBaseCharacter::OnHealthReduced);
+	RegisterAllComponents();
 }
 
 
@@ -79,6 +79,7 @@ void ABFBaseCharacter::StopSprint_Implementation()
 	UBFCharacterMovementComponent* CharacterMovement = GetBFCharacterMovement();
 	if (CharacterMovement)
 	{
+		Cast<UBFAnimInstance>(GetMesh()->GetAnimInstance())->bCanSprint = false;
 		bIsSprint = false;
 		CharacterMovement->SetDefaultMaxWalkSpeed();
 		CharacterHeartBeatData.bShouldRestoreHeartBeatRate = true;
@@ -93,7 +94,7 @@ void ABFBaseCharacter::Sprint_Implementation()
 		UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
 		if (CharacterMovement)
 		{
-			//Cast<UBFAnimInstance>(GetMesh()->GetAnimInstance())->bIsSprint = true;
+			Cast<UBFAnimInstance>(GetMesh()->GetAnimInstance())->bCanSprint = true;
 			bIsSprint = true;
 			CharacterMovement->SetSprintSpeed();
 			CharacterHeartBeatData.bShouldRestoreHeartBeatRate = false;

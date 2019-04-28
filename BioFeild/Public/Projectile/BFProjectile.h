@@ -71,7 +71,7 @@ protected:
 		virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 public:
-	virtual void SetUpWeaponOwner(ABFWeaponBase* NewOwner);
+	virtual void SetUpWeaponOwner(ABFWeaponBase* NewOwner) { this->WeaponOwner = NewOwner; };
 
 	virtual FHitResult GetHitResult()const { return HitResult; }
 

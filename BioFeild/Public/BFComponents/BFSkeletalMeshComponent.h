@@ -7,9 +7,6 @@
 #include "BFSkeletalMeshComponent.generated.h"
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCanStepOnSignature, FHitResult, Hit1, FHitResult, Hit2);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTakeProjectileDamageSignature, ABFProjectile*, HitProjectile, UBFSkeletalMeshComponent*, HitComponent);
-
 class ABFProjectile;
 class ABFBaseCharacter;
 class UBFAnimInstance;
@@ -19,11 +16,14 @@ struct FSocketNames {
 
 	GENERATED_USTRUCT_BODY()
 
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SocketNames")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SocketNames")
 		FName RifleHolsterSocket;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SocketNames")
 		FName PistolHolsterSocket;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SocketNames")
+		FName ScopeHolderSocket;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SocketNames")
 		FName CurrentWeaponPistolSocket;
@@ -53,12 +53,13 @@ struct FSocketNames {
 /**
 * BF Customized SkeletalMesh Component,for Character use purposes
 */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCanStepOnSignature, FHitResult, Hit1, FHitResult, Hit2);
 UCLASS(Blueprintable)
 class BIOFEILD_API UBFSkeletalMeshComponent : public USkeletalMeshComponent
 {
 	GENERATED_UCLASS_BODY()
 
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Noise")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Noise")
 		float StepLoudnessBase;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Noise")
@@ -70,9 +71,6 @@ class BIOFEILD_API UBFSkeletalMeshComponent : public USkeletalMeshComponent
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FCanStepOnSignature OnCanStep;
 
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-		FTakeProjectileDamageSignature OnTakeProjectileDamage;
-
 protected:
 
 	UPROPERTY()
@@ -82,13 +80,13 @@ protected:
 		FHitResult StepOnDectct2TraceHit;
 
 	UPROPERTY()
-		bool bCanPerformStep;
+	uint8  bCanPerformStep : 1;
 
 	UPROPERTY()
 		uint8 bTickDetectTrace : 1;
 
 	UPROPERTY()
-		ABFProjectile* HitProjectile;
+		ABFProjectile* LastHitProjectile;
 
 	UPROPERTY()
 		ABFBaseCharacter* OwnerCharacter;
@@ -115,7 +113,8 @@ protected:
 
 	virtual bool CalculateCanStepOn();
 
-	virtual void SetHitProjectile(ABFProjectile* HitProjectile);
+	UFUNCTION(BlueprintCallable,Category = "BFSkeletalMesh")
+		virtual void SetLastHitProjectile(ABFProjectile* HitProjectile) { this->LastHitProjectile = HitProjectile; };
 
 	virtual void SetHitOwnerCharacter(ABFBaseCharacter* Owner);
 
@@ -123,7 +122,7 @@ protected:
 public:
 	/** return projectile that hit this skeletal mesh */
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter|Damage")
-		virtual ABFProjectile* GetHitProjectile()const { return HitProjectile; }
+		virtual ABFProjectile* GetLastHitProjectile()const { return LastHitProjectile; }
 
 	/** return character that own this mesh */
 	UFUNCTION(BlueprintCallable, Category = "Character")
@@ -139,11 +138,7 @@ public:
 
 	/** receive projectile hit event */
 	UFUNCTION()
-		virtual void ReceiveProjectileHit(ABFProjectile* Projectile, float DamageAmount, FVector NormalImpulse);
-
-	/** handle hit */
-	UFUNCTION()
-		virtual void HandleHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+		virtual void ReceiveProjectileHit(ABFProjectile* Projectile, float DamageAmount, FVector NormalImpulse, const FHitResult HitResult);
 
 	    virtual void BeginPlay()override;
 

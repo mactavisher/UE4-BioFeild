@@ -84,29 +84,23 @@ void ABFProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 {
 	if (OtherComp)
 	{
-		/** event dispatcher syntax,broadcast this hit event   */
-		OnProjectileHit.Broadcast(this, DeterminDamage(Hit), NormalImpulse);
 		if (OtherComp->Mobility==EComponentMobility::Movable&&!OtherComp->GetClass()->IsChildOf(USkeletalMeshComponent::StaticClass()))
 		{
 			OtherComp->SetSimulatePhysics(true);
 			OtherComp->AddImpulseAtLocation(GetVelocity()*0.5f, GetActorLocation(), NAME_None);
 		}
-		UBFSkeletalMeshComponent* HitSkeletal = Cast<UBFSkeletalMeshComponent>(OtherComp);
-		if (HitSkeletal)
+		UBFSkeletalMeshComponent* HitSkeleton = Cast<UBFSkeletalMeshComponent>(OtherComp);
+		if (HitSkeleton)
 		{
-			HitSkeletal->ReceiveProjectileHit(this, DeterminDamage(Hit), NormalImpulse);
+			HitSkeleton->ReceiveProjectileHit(this, DeterminDamage(Hit), NormalImpulse,Hit);
 		}
 		SpawnImpactEffect(Hit);
 	}
 	Destroy(this);
 }
 
-void ABFProjectile::SetUpWeaponOwner(ABFWeaponBase* NewOwner)
-{
-	WeaponOwner = NewOwner;
-}
-
 float  ABFProjectile::GetDamageTaken()
 {
 	return DeterminDamage(HitResult);
 }
+

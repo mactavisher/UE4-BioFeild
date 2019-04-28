@@ -22,7 +22,7 @@ class ABFZombieController;
 USTRUCT(BlueprintType)
 struct FHitAnim {
 	GENERATED_USTRUCT_BODY()
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
 		UAnimMontage* FrontHitAnim;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
@@ -59,7 +59,6 @@ enum class EZombieMoveType :uint8 {
 //event signature syntaxes
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSeePlayerSignatrue, class ABFPlayerController*, Player,class ABFPlayerCharacter*, PlayerPawn,FVector,Location);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHearPlayerSignature, ABFPlayerCharacter*, Instigator, const FVector&, Location, float, Volume);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnCausePlayerDamageSignature, ABFZombie*, DamageCauser, float, DamageAmount, FHitResult, BodyHit);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOZomibeDeadSignature);
 
 /**
@@ -83,14 +82,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Zombie|Animation")
 		UAnimMontage* AttackAnim;
 
-	/** attached to left hand to detect damage  */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Zombie|Damage", meta = (AllowPrivateAccess = "true"))
-		UBoxComponent* LeftHandDamage;
-
-	/** attached to right hand to detect damage  */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Zombie|Damage", meta = (AllowPrivateAccess = "true"))
-		UBoxComponent* RightHandDamage;
-
 	/** base damage each time damage event happens  */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Zombie|Damage", meta = (AllowPrivateAccess = "true"))
 		float HandDamageBase;
@@ -102,10 +93,6 @@ public:
 	/** left hand damage detect comp attaching point */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Zombie|Sockets")
 		FName RightHandDamageSocket;
-
-	/** event syntax to broadcast this damage player event */
-	UPROPERTY(BlueprintAssignable, Category = "Zombie|Events")
-		FOnCausePlayerDamageSignature OnDamagePlayer;
 
 	/**notify zombie controller is see player */
 	UPROPERTY(BlueprintAssignable, Category = "Zombie|Events")
@@ -144,50 +131,16 @@ protected:
 
 	virtual void PostInitializeComponents()override;
 
-	/** decide damage amount base on collision info,currently ,will just simply return damage base, other detail cause effect damage will add on future */
-	virtual float  DecideHandsDamage(const FHitResult & SweepResult, ABFPlayerCharacter* PlayerCharacter, bool bFromSweep);
-
 public:
 
 	/** override parent function to implement more logic  */
 	virtual float PlayAttackingAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName);
-
-	/** enable left hand damage */
-	UFUNCTION(BlueprintCallable,Category="Zombie|Damage")
-	virtual void EnableLeftHandDamage();
-
-	/** enable right hand damage */
-	UFUNCTION(BlueprintCallable, Category = "Zombie|Damage")
-	virtual void EnableRighthandDamage();
-
-	/** disable left hand damage */
-	UFUNCTION(BlueprintCallable, Category = "Zombie|Damage")
-	virtual void DisableLeftHandDamage();
-
-	/** disable right hand damage */
-	UFUNCTION(BlueprintCallable, Category = "Zombie|Damage")
-	virtual void DisableRighthandDamage();
-
 
 	UFUNCTION()
 		virtual void OnSeePawn(APawn* Pawn);
 
 	UFUNCTION()
 		virtual void OnHearNoise(APawn* EnemyPawn, const FVector& Location, float Volume);
-
-	/** deal with left hand damage */
-	UFUNCTION()
-		virtual void HandleLeftHandDamageOverlap(UPrimitiveComponent*OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
-
-	/** deal with right hand damage */
-	UFUNCTION()
-		virtual void HandleRightHandDamageOverlap(UPrimitiveComponent*OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
-
-	UFUNCTION()
-		virtual void HandleLeftHandDamageEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	UFUNCTION()
-		virtual void HandleRightHandDamageEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Zombie")
 		virtual bool GetIsZombieAttacking()const { return bIsAttacking; }

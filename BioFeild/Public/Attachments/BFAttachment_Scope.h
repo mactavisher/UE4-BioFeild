@@ -18,9 +18,20 @@ public:
 		/** this scene Capture Component used to create dual scope effect */
 		UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RenderTargetComp", meta = (AllowPrivateAccess = "true"))
 		USceneCaptureComponent2D* SceneCaptureComp;
+
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "WeaponAttachments")
+			float CameraZOffSet;
+
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SocketName")
+			FName ScenenCaptureAttachSocket;
 	
-private:
+protected:
+	virtual void PostInitializeComponents()override;
+
 	virtual void BeginPlay()override;
     
 	virtual void ShouldActiveScenceCapture();
+
+	virtual void Tick(float DeltaTime)override;
+
 };

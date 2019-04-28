@@ -19,7 +19,7 @@ ABFBulletShell::ABFBulletShell(const FObjectInitializer& ObjectInitailizer) :Sup
 	FScriptDelegate Delegate;
 	Delegate.BindUFunction(this, "PlayShellCollisionSound");
 	ShellParticleComp->OnParticleCollide.AddUnique(Delegate);
-	InitialLifeSpan = 3.0f;
+	InitialLifeSpan = 2.0f;
 	bIsEffectPlayed = false;
 }
 

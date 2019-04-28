@@ -11,38 +11,49 @@ class USoundCue;
 class ABFShellImpactEffects;
 class ABFWeaponBase;
 
-UCLASS()
+/**
+ * shell to spawn when weapon shoots,this make weapon more realistic
+ */
+UCLASS(notplaceable)
 class BIOFEILD_API ABFBulletShell : public AActor
 {
 	GENERATED_UCLASS_BODY()
 
 public:
+	/** shell particle component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ShellParticle", meta = (AllowPrivateAccess = "true"))
 		UParticleSystemComponent* ShellParticleComp;
 
+	/** shell particle template */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "CollideSound")
 		UParticleSystem* ShellParticle;
 
+	/** shell collide effect class  */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Effects")
 		TSubclassOf<ABFShellImpactEffects> ShellImpactEffectsClass;
 
 protected:
 
-
-	ABFWeaponBase* WeaponEjector;
-
+	/** indicate if this effect is played ,to prevent from playing effects multiple times */
 	UPROPERTY()
-		uint8 bIsEffectPlayed : 1;
+	    uint8 bIsEffectPlayed : 1;
 
-	UFUNCTION(BlueprintCallable, Category = "BulletShell")
-		virtual void PlayShellCollisionSound(FName EventName, float  EmitterTime, int32  ParticleTime, FVector  Location, FVector  Velocity, FVector Direction, FVector  Normal, FName BoneName, UPhysicalMaterial* PhysMat);
+	/** Weapon that eject this projectile */
+	UPROPERTY()
+	    ABFWeaponBase* WeaponEjector;
 
 	virtual void BeginPlay()override;
 
+	/** play shell collision sound when shell collide with other surfaces */
+	UFUNCTION(BlueprintCallable, Category = "BulletShell")
+		virtual void PlayShellCollisionSound(FName EventName, float  EmitterTime, int32  ParticleTime, FVector  Location, FVector  Velocity, FVector Direction, FVector  Normal, FName BoneName, UPhysicalMaterial* PhysMat);
+
 public:
+	/** weapon getter */
 	UFUNCTION(BlueprintCallable, Category = "WeaponShell")
 		virtual ABFWeaponBase* GetWeaponEjector()const { return WeaponEjector; }
 
+	/** weapon setter */
 	UFUNCTION(BlueprintCallable)
-		virtual void SetWeaponEjector(ABFWeaponBase* WeaponEjector) { this->WeaponEjector = WeaponEjector; }
+		virtual void SetWeaponEjector(ABFWeaponBase* InWeaponEjector) { this->WeaponEjector = InWeaponEjector; }
 };

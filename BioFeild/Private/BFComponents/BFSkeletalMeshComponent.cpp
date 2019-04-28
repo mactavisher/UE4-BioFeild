@@ -18,7 +18,6 @@ UBFSkeletalMeshComponent::UBFSkeletalMeshComponent(const FObjectInitializer& Obj
 	StepLoudnessBase = 1.0f;
 	StepNoiseEffectiveRadius = 100.f;
 	bTickDetectTrace = true;
-	this->OnComponentHit.AddDynamic(this, &UBFSkeletalMeshComponent::HandleHit);
 	SocketNames.CurrentWeaponPistolSocket = TEXT("CurrentHandGunBaseSocket");
 	SocketNames.CurrentWeaponRifleSocket = TEXT("CurrentRifleBaseSocket");
 	SocketNames.RifleHolsterSocket = TEXT("Socket_ARHolster");
@@ -119,13 +118,13 @@ float UBFSkeletalMeshComponent::CalculatePitchOffSet()
 	return Pitch;
 }
 
-void UBFSkeletalMeshComponent::ReceiveProjectileHit(ABFProjectile* HitProjectile, float DamageAmount, FVector NormalImpulse)
+void UBFSkeletalMeshComponent::ReceiveProjectileHit(ABFProjectile* HitProjectile, float DamageAmount, FVector NormalImpulse,const FHitResult HitResult)
 {
-	this->HitProjectile = HitProjectile;
+	this->LastHitProjectile = HitProjectile;
 	const FDamageEvent DamageEvent = HitProjectile->GetDamageEvent();
-	const float ImpulseModifier = FMath::RandRange(1.1f, 1.4f);
+	const float ImpulseModifier = FMath::RandRange(0.8f, 1.1f);
 	OwnerCharacter->TakeDamage(DamageAmount, DamageEvent, HitProjectile->GetWeaponOwner()->GetWeaponOwner()->GetPlayerController(), HitProjectile);
-	if (OwnerCharacter->GetCharacterIsDead())
+	if (OwnerCharacter->GetCharacterIsDead()&&IsSimulatingPhysics())
 	{
 		this->AddImpulseAtLocation(HitProjectile->GetVelocity()*ImpulseModifier, HitProjectile->GetActorLocation(), NAME_None);
 	}
@@ -135,23 +134,12 @@ bool UBFSkeletalMeshComponent::CalculateCanStepOn()
 {
 	if (StepOnDetect1TraceHit.bBlockingHit && !StepOnDectct2TraceHit.bBlockingHit)
 	{
-		return bCanPerformStep = true;
 		OnCanStep.Broadcast(StepOnDetect1TraceHit, StepOnDectct2TraceHit);
+		return bCanPerformStep = true;
 	}
 	else
 	{
 		return bCanPerformStep = false;
-	}
-}
-
-void UBFSkeletalMeshComponent::HandleHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	ABFProjectile* HitProjectile = Cast<ABFProjectile>(OtherActor);
-	if (HitProjectile)
-	{
-		const FHitResult HitResult = HitProjectile->GetHitResult();
-		//HitProjectile->OnProjectileHit.AddDynamic(this, &UBFSkeletalMeshComponent::ReceiveProjectileHit);
-		HitProjectile->OnProjectileHit.AddDynamic(this, &UBFSkeletalMeshComponent::ReceiveProjectileHit);
 	}
 }
 
@@ -193,10 +181,6 @@ void UBFSkeletalMeshComponent::TickComponent(float DeltaTime, enum ELevelTick Ti
 	}
 }
 
-void UBFSkeletalMeshComponent::SetHitProjectile(ABFProjectile* HitProjectile)
-{
-
-}
 
 void UBFSkeletalMeshComponent::SetHitOwnerCharacter(ABFBaseCharacter* Owner)
 {

@@ -40,12 +40,12 @@ void ABFZombieController::WalkTo()
 	//const FName EnemyLocationkey = "EnemyLocation";
 	//const FVector EnemyLocation = GetBlackboardComponent()->GetValueAsVector(EnemyLocationkey);
 	const FVector ZombieLocation = PossessedZombie->GetActorLocation();
-	PossessedZombie->AddMovementInput(EnemyLocation - ZombieLocation, 1.0f, true);
+	PossessedZombie->AddMovementInput(PossessedZombie->GetActorForwardVector(),1.0f, true);
 }
 
 void ABFZombieController::ChargeTo()
 {
-	PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed =300.f;
+	PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed =600.f;
 	const float MaxWalkingSpeed = PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed;
 	const float CurrentWalkSpeed = PossessedZombie->GetCharacterXYVelocity().Size();
 	const FVector ZombieLocation = PossessedZombie->GetActorLocation();
@@ -76,8 +76,6 @@ void ABFZombieController::StopAttack()
 	{
 		Cast<UBFZombieAnimation>(PossessedZombie->GetMesh()->GetAnimInstance())->Montage_Stop(0.5f, PossessedZombie->AttackAnim);
 	}
-	PossessedZombie->DisableLeftHandDamage();
-	PossessedZombie->DisableRighthandDamage();
 }
 
 void ABFZombieController::StopMovement()
@@ -245,7 +243,7 @@ void ABFZombieController::ReceiveZombieHearNoise(ABFPlayerCharacter* PlayerChara
 #if WITH_EDITOR
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("I hear something................................................!"));
 #endif
-		PlayerEnemy = Player;
+		//PlayerEnemy = Player;
 		DecideToTrackingPlayer();
 	}
 }
@@ -317,8 +315,8 @@ void ABFZombieController::MoveZombie(EZombieMoveType SpecifyMoveType)
 	const EZombieMoveType ZombieCurrentMoveType = PossessedZombie->GetZombieMoveType();
 	switch (ZombieCurrentMoveType)
 	{
-	default:PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 50.f; break;
-	case EZombieMoveType::WalkTo:PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 50.f;break;
+	default:PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 300.f; break;
+	case EZombieMoveType::WalkTo:PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 300.f;break;
 	case EZombieMoveType::ChargeTo: PossessedZombie->GetBFCharacterMovement()->MaxWalkSpeed = 300.f;break;
 	}
 	switch (ZombieCurrentMoveType)

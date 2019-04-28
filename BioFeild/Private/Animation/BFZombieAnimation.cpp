@@ -25,7 +25,7 @@ void UBFZombieAnimation::NativeUpdateAnimation(float DeltaSeconds)
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	if (Zombie)
 	{
-		bIsWalking = Zombie->GetCharacterXYVelocity().Size() > Zombie->GetCharacterMovement()->MaxWalkSpeed*0.8f;
+		bIsWalking = Zombie->GetCharacterXYVelocity().Size() > Zombie->GetCharacterMovement()->MaxWalkSpeed*0.5f;
 	}
 }
 

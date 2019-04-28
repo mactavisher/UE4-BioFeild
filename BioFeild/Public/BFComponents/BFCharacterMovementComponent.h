@@ -31,8 +31,13 @@ class BIOFEILD_API UBFCharacterMovementComponent : public UCharacterMovementComp
 	UPROPERTY()
 		float DefaultMaxWalkSpeed;
 
+
+
 protected:
+	UPROPERTY()
 	ABFBaseCharacter* OwnerCharacter;
+
+	virtual void BeginPlay()override;
 
 public:
 	virtual void SetSprintSpeed();

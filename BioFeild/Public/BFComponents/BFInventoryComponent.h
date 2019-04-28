@@ -15,7 +15,7 @@ struct FWeaponSlot {
 
 	GENERATED_USTRUCT_BODY()
 
-		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SlotName")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SlotName")
 		FName SlotName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BFWeapon")
@@ -57,7 +57,7 @@ private:
 public:
 	virtual uint8 GetWeaponSlotSize() const { return WeaponSlots.Num(); }
 
-	virtual TArray<FWeaponSlot> GetWeaponSlot()const { return WeaponSlots; }
+	virtual void  GetWeaponSlot(TArray<FWeaponSlot>& OutWeaponSlots) { OutWeaponSlots = WeaponSlots; };
 
     /** automatically add weapon to  a empty slot */
 	virtual void AddWeaponToSlot(ABFWeaponBase* WeaponToAdd);
@@ -77,5 +77,6 @@ public:
 	virtual ABFWeaponBase* GiveDefaultWeapon();
 
 
-
+protected:
+	virtual void BeginPlay()override;
 };

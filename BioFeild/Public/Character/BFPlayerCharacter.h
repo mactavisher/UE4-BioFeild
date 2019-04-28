@@ -40,7 +40,7 @@ struct FItemTraceDetectResult {
 
 	GENERATED_USTRUCT_BODY()
 
-		UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		uint8 bHitSomething:1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -81,10 +81,6 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 
 	/*create camera sprinArm  for Camera*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-		USpringArmComponent * CameraArmComp;
-
-	/*create camera sprinArm  for Camera*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		UBFInventoryComponent* InventoryComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -93,10 +89,9 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		UPawnNoiseEmitterComponent* NoiseEmmiterComp;
 
-
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BFCamera")
-		float AimingCameraArmLenghModifier;
+	/*create 3rd view mesh for player character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "CharacterMesh", meta = (AllowPrivateAccess = "true"))
+		UBFSkeletalMeshComponent*  Mesh3PComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TraceDetect")
 		FItemTraceDetectResult DetectedItemInfo;
@@ -114,15 +109,15 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 protected:
 	/** whether player is ADS or Aiming we can consider it as aiming */
 	UPROPERTY()
-	bool bIsAiming;
+		uint8 bIsADS:1;
 
 	/** specify whether this Character is armed */
 	UPROPERTY()
-	bool bIsArmed;
+	uint8 bIsArmed:1;
 
 	/** indicate that character wants to swap weapon */
 	UPROPERTY()
-	bool bWantsToSwapWeapon;
+	uint8 bWantsToSwapWeapon:1;
 
 	/** CurrentWeapon the player equipped */
 	UPROPERTY()
@@ -223,14 +218,6 @@ protected:
 	UFUNCTION()
 	virtual void OnWeaponUnequiped();
 
-
-
-	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
-		void Aiming();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
-		void StopAiming();
-
 	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
 		void ADS();
 
@@ -257,7 +244,7 @@ public:
 		virtual bool GetCharacterIsArmed()const { return bIsArmed; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "BFCharacter")
-		virtual bool GetCharacterIsAming()const { return bIsAiming; }
+		virtual bool GetCharacterIsADS()const { return bIsADS; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "BFCharacter")
 		virtual ABFPlayerController* GetPlayerController()const { return PlayerController; }
@@ -297,6 +284,8 @@ public:
 		virtual void FixedStyleCamera();
 
 	   virtual void DetectItem();
+
+	   virtual void Update1pMeshTransform();
 
 	   UFUNCTION()
 		   virtual void AimingFOVDelegateCallBack();
