@@ -6,11 +6,22 @@
 #include "Camera/PlayerCameraManager.h"
 #include "BFPlayerCameraManager.generated.h"
 
+class ABFPlayerController;
+
 /**
  * 
  */
 UCLASS()
 class BIOFEILD_API ABFPlayerCameraManager : public APlayerCameraManager
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
+
+		UPROPERTY()
+		ABFPlayerController* BFPlayerController;
+
+
+private:
+
+		virtual void UpdateCamera(float DeltaTime)override;
+	    
 };

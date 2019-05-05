@@ -6,7 +6,8 @@
 
 UBFHealthComponent::UBFHealthComponent(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.SetTickFunctionEnable(true);
 	DefaultHealth = 100.f;
 	MaximunHealth = 200.f;
 	CurrentHealth = DefaultHealth;

@@ -6,55 +6,66 @@
 #include "Character/BFPlayerController.h"
 #include "DrawDebugHelpers.h"
 #include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInterface.h"
 #include "BFComponents/BFWeaponMeshComponent.h"
+#include "Kismet/KismetMaterialLibrary.h"
 #include "Components/SceneCaptureComponent2D.h"
 
 ABFAttachment_Scope::ABFAttachment_Scope(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	RootComponent = MeshComp;
 	SceneCaptureComp = ObjectInitializer.CreateDefaultSubobject<USceneCaptureComponent2D>(this, TEXT("SceneCaptureComp"));
-	SceneCaptureComp->RegisterComponent();
-	SceneCaptureComp->SetComponentTickEnabled(true);
 	AttachmentType = EAttachmentType::Scope;
+	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.SetTickFunctionEnable(false);
 }
 
 void ABFAttachment_Scope::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	RegisterAllComponents();
 }
 
 void ABFAttachment_Scope::BeginPlay()
 {
 	Super::BeginPlay();
-	ShouldActiveScenceCapture();
-   SceneCaptureComp->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, ScenenCaptureAttachSocket);
+    SceneCaptureComp->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, ScenenCaptureAttachSocket);
+	//EnableSceneCapture();
+	ScopeGrassMat = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, ScopeGrassMat)->GetMaterial();
+	ADSMat = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, ADSMat)->GetMaterial();
+	DisableSceneCapture();//turn off scencaptrue by default;
 }
 
-void ABFAttachment_Scope::ShouldActiveScenceCapture()
-{
-	if (GetWeaponOwner())
-	{
-		if (GetWeaponOwner()->GetWeaponOwner())
-		{
-			if (GetWeaponOwner()->GetWeaponOwner()->GetController()->IsLocalController())
-			{
-				SceneCaptureComp->Deactivate();
-			}
-		}
-		else
-		{
-			SceneCaptureComp->Activate();
-		}
-	}
-}
 
 void ABFAttachment_Scope::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-#if WITH_EDITOR
-	//DrawDebugSphere(GetWorld(), SceneCaptureComp->GetComponentLocation(), 15.f, 30.f, FColor::Red, false, 0.1f);
-	//DrawDebugSphere(GetWorld(), MeshComp->GetSocketLocation("SightPoint"),15.f,30.f,FColor::Green,false,0.1f);
-#endif
+}
+
+void ABFAttachment_Scope::DisableSceneCapture()
+{
+	SceneCaptureComp->bCaptureEveryFrame = false;
+	SceneCaptureComp->Deactivate();
+	SceneCaptureComp->bCaptureOnMovement = false;
+	SceneCaptureComp->PrimaryComponentTick.SetTickFunctionEnable(false);
+}
+
+void ABFAttachment_Scope::EnableSceneCapture()
+{
+	SceneCaptureComp->bCaptureEveryFrame = true;
+	SceneCaptureComp->Activate();
+	SceneCaptureComp->bCaptureOnMovement = true;
+	SceneCaptureComp->PrimaryComponentTick.SetTickFunctionEnable(true);
+}
+
+void ABFAttachment_Scope::OnADS()
+{
+	EnableSceneCapture();
+	MeshComp->SetMaterial(1, ADSMat);
+}
+
+void ABFAttachment_Scope::OnStopADS()
+{
+	DisableSceneCapture();
+	MeshComp->SetMaterial(1, ScopeGrassMat);
 }
 

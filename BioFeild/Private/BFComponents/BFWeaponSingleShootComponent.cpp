@@ -32,7 +32,7 @@ void UBFWeaponSingleShootComponent::SimulateSingleShoot()
 		bNeedRestoreWeaponSpread = false;
 		bNeedIncreaseWeaponSpread = true;
 		bUseRecoil = true;
-		GetWorld()->GetTimerManager().SetTimer(SingleShotCoolDownHandle, this, &UBFWeaponSingleShootComponent::ShootCoolDown, 1.0f, false, 0.2f);
+		GetWorld()->GetTimerManager().SetTimer(SingleShotCoolDownHandle, this, &UBFWeaponSingleShootComponent::ShootCoolDown, 1.0f, false, 0.125f);
 	}
 }
 

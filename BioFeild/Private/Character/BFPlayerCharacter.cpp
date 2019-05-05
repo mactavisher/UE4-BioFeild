@@ -16,19 +16,23 @@
 #include "UI/BFUserWidgetBase.h"
 #include "Animation/BFAnimInstance.h"
 #include "Bot/BFZombie.h"
+#include "Attachments/BFAttachment_Scope.h"
 #include "GameFrameWork/Actor.h"
 
 ABFPlayerCharacter::ABFPlayerCharacter(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer.SetDefaultSubobjectClass<UBFSkeletalMeshComponent>(ACharacter::MeshComponentName))
 {
 	ViewMode = EViewMode::FPS;
+	SpringArmComp = ObjectInitializer.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("SpringArm"));
 	CameraComp = ObjectInitializer.CreateDefaultSubobject<UCameraComponent>(this, TEXT("CameraComp"));
-	Mesh3PComp=ObjectInitializer.CreateDefaultSubobject<UBFSkeletalMeshComponent>(this, TEXT("Character3pMesh"));
-	Mesh3PComp->SetupAttachment(RootComponent);
+	Mesh3PComp = ObjectInitializer.CreateDefaultSubobject<UBFSkeletalMeshComponent>(this, TEXT("Character3pMesh"));
 	InventoryComponent = ObjectInitializer.CreateDefaultSubobject<UBFInventoryComponent>(this, TEXT("InventoryComp"));
 	AimingFOVTimeLineComponent = ObjectInitializer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("AimingFOVTimelineComp"));
 	NoiseEmmiterComp = ObjectInitializer.CreateDefaultSubobject<UPawnNoiseEmitterComponent>(this, TEXT("NoiseEmmiter"));
-	CameraComp->SetupAttachment(GetCapsuleComponent());
-	CameraComp->AddRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight + 25.f));
+	//SpringArmComp->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	SpringArmComp->SetupAttachment(GetCapsuleComponent());
+	SpringArmComp->TargetArmLength = 5.f;
+	CameraComp->SetupAttachment(SpringArmComp);
+	Mesh3PComp->SetupAttachment(GetCapsuleComponent());
 	AimingFOVTimeLineComponent->SetComponentTickEnabled(true);
 	PrimaryActorTick.bCanEverTick = true;
 	bWantsToSwapWeapon = false;
@@ -37,21 +41,28 @@ ABFPlayerCharacter::ABFPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	OnUnequipWeapon.AddDynamic(this, &ABFPlayerCharacter::OnWeaponUnequiped);
 	AimingFOVTimelineDelegate.BindUFunction(this, "AimingFOVDelegateCallBack");
 	bUseControllerRotationPitch = false;
-
 }
 
 void ABFPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	CameraOriginalRelativeTransform = CameraComp->GetRelativeTransform();
 	InventoryComponent->SetOwnerCharacter(this);
 	InventoryComponent->initializeAvailableWeapon();
 	CurrentAnimInstance = Cast<UBFAnimInstance>(GetBFSkeletalMesh()->GetAnimInstance());
-	CharacterMesh->SetupAttachment(CameraComp);
+	CharacterMesh->AttachToComponent(SpringArmComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	CharacterMesh->MeshComponentUpdateFlag = EMeshComponentUpdateFlag::OnlyTickPoseWhenRendered;
 	CharacterMesh->SetOnlyOwnerSee(true);
 	Mesh3PComp->SetOwnerNoSee(true);
 	Mesh3PComp->SetOnlyOwnerSee(false);
 	Mesh3PComp->bOnlyOwnerSee = false;
 	Mesh3PComp->bOwnerNoSee = true;
+	//add rotation to make 1p mesh look forward
+	CharacterMesh->AddRelativeRotation(FRotator(0.f, -90.f, 0.f));
+	//add relative location to match 3p mesh bone location for later use purpose
+	CharacterMesh->AddRelativeLocation(FVector(18.f,0.f,-150.f));
+	// adjust camera location to match weapon action such as ADS,this should be a valuable get from from weapon property
+	CameraComp->AddRelativeLocation(FVector(-6.f,0.f,20.25f));
 }
 
 void ABFPlayerCharacter::Tick(float DeltaTime)
@@ -62,7 +73,6 @@ void ABFPlayerCharacter::Tick(float DeltaTime)
 		CalculateTurnData();
 	}
 	DetectItem();
-	Update1pMeshTransform();
 	//AimingFOVTimeLineComponent->TickComponent(DeltaTime, ELevelTick::LEVELTICK_TimeOnly, NULL);
 }
 
@@ -109,8 +119,12 @@ void ABFPlayerCharacter::EquipWeapon()
 	if (CheckCanEquip())
 	{
 		UAnimMontage* EquipAnimMotage = nullptr;
+		CurrentAnimInstance->bIsArmed = true;
 		CurrentWeapon = WeaponToEquip;
 		float Duration = 0.5f;
+		bIsArmed = true;
+		CurrentAnimInstance->CurrentWeaponType = CurrentWeapon->GetWeaponType();
+		CurrentAnimInstance->CurrentWeaponName = CurrentWeapon->GetWeaponName();
 		switch (ViewMode)
 		{
 		case EViewMode::FPS: EquipAnimMotage = CurrentWeapon->GetWeaponAnim_FPS().EquipAnim; break;
@@ -118,8 +132,9 @@ void ABFPlayerCharacter::EquipWeapon()
 		}
 		Duration = PlayAnimMontage(EquipAnimMotage, 1.0f, NAME_None);
 		CharacterActionType = ECharacterWeaponAction::Equiping;
-		const float CameraZoffSet = WeaponToEquip->
-		GetWorldTimerManager().SetTimer(EquipWeaponTimerHanle, this, &ABFPlayerCharacter::FinishEquipWeapon, 1.0f, false, Duration*0.7f);
+		//const FVector  CameraAdjustVector = WeaponToEquip->GetADSCameraAdjustVector();
+		//CameraComp->AddRelativeLocation(CameraAdjustVector);
+		GetWorldTimerManager().SetTimer(EquipWeaponTimerHanle, this, &ABFPlayerCharacter::FinishEquipWeapon, 1.0f, false, Duration);
 	}
 }
 
@@ -130,9 +145,7 @@ void ABFPlayerCharacter::FinishEquipWeapon()
 	CharacterActionType = ECharacterWeaponAction::Idle;
 	bWantsToSwapWeapon = false;
 	CurrentWeapon->ReciveFinishEquiping();
-	CurrentAnimInstance->bIsArmed = true;
-	CurrentAnimInstance->CurrentWeaponType = CurrentWeapon->GetWeaponType();
-	CurrentAnimInstance->CurrentWeaponName = CurrentWeapon->GetWeaponName();
+	CurrentWeapon->OnWeaponEquiped();
 	OnCharacterArmed();
 }
 
@@ -142,19 +155,17 @@ void ABFPlayerCharacter::UnEquipWeapon()
 	{
 		UAnimMontage* UnEquipMontage = nullptr;
 		float Duration = 0.5f;
-		switch (ViewMode)
-		{
-		case EViewMode::FPS: UnEquipMontage = CurrentWeapon->GetWeaponAnim_FPS().EquipAnim; break;
-		case EViewMode::TPS: UnEquipMontage = CurrentWeapon->GetWeaponAnim().EquipAnim; break;
-		}
+		CurrentAnimInstance->bIsArmed = false;
+	    UnEquipMontage = CurrentWeapon->GetWeaponAnim_FPS().UnEquipAnim;
 		Duration = PlayAnimMontage(UnEquipMontage, 1.0f, NAME_None);
-		GetWorldTimerManager().SetTimer(UnequipWeaponTimerHanle, this, &ABFPlayerCharacter::FinishUnEquipWeapon, 1.0f, false, Duration*0.6);
+		GetWorldTimerManager().SetTimer(UnequipWeaponTimerHanle, this, &ABFPlayerCharacter::FinishUnEquipWeapon, 1.0f, false, Duration);
 		CharacterActionType = ECharacterWeaponAction::UnEquiping;
 	}
 }
 
 void ABFPlayerCharacter::FinishUnEquipWeapon()
 {
+	CurrentWeapon->OnWeaponUnEquiped();
 	InventoryComponent->WeaponSlots[CurrentWeapon->GetWeaponSlotIndex()].SlotWeapon = CurrentWeapon;//put the weapon back to inventory
 	InventoryComponent->WeaponSlots[CurrentWeapon->GetWeaponSlotIndex()].bIsSlotOccupied = true;
 	CurrentWeapon->ReceiveUnequiping();
@@ -162,7 +173,6 @@ void ABFPlayerCharacter::FinishUnEquipWeapon()
 	bIsArmed = false;
 	CharacterActionType = ECharacterWeaponAction::Idle;
 	OnCharacterUnArmed();
-	CurrentAnimInstance->bIsArmed = false;
 	OnUnequipWeapon.Broadcast();
 	if (bWantsToSwapWeapon&&WeaponToEquip)
 	{
@@ -209,6 +219,7 @@ void ABFPlayerCharacter::DetachCurrentWeaponFromHand()
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->WeaponMeshComponent->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+		CurrentWeapon->WeaponMeshComponent->SetSimulatePhysics(true);
 	}
 }
 
@@ -280,7 +291,7 @@ void ABFPlayerCharacter::NotifyItemDetected(ABFInventoryItem* DetectedItem)
 void ABFPlayerCharacter::EquipSlot1Weapon()
 {
 	WeaponToEquip = InventoryComponent->GiveSlotWeapon(0);
-	if (CurrentWeapon&&WeaponToEquip != WeaponToEquip)
+	if (CurrentWeapon&&CurrentWeapon != WeaponToEquip)
 	{
 		StopAnimMontage(CurrentWeapon->GetWeaponAnim().ReloadAnim);
 		UnEquipWeapon();
@@ -295,7 +306,7 @@ void ABFPlayerCharacter::EquipSlot1Weapon()
 void ABFPlayerCharacter::EquipSlot2Weapon()
 {
 	WeaponToEquip = InventoryComponent->GiveSlotWeapon(1);
-	if (CurrentWeapon&&WeaponToEquip != WeaponToEquip)
+	if (CurrentWeapon&&CurrentWeapon != WeaponToEquip)
 	{
 		StopAnimMontage(CurrentWeapon->GetWeaponAnim().ReloadAnim);
 		UnEquipWeapon();
@@ -310,7 +321,7 @@ void ABFPlayerCharacter::EquipSlot2Weapon()
 void ABFPlayerCharacter::EquipSlot3Weapon()
 {
 	WeaponToEquip = InventoryComponent->GiveSlotWeapon(2);
-	if (CurrentWeapon&&WeaponToEquip != WeaponToEquip)
+	if (CurrentWeapon&&CurrentWeapon != WeaponToEquip)
 	{
 		StopAnimMontage(CurrentWeapon->GetWeaponAnim().ReloadAnim);
 		UnEquipWeapon();
@@ -326,7 +337,7 @@ void ABFPlayerCharacter::EquipSlot4Weapon()
 {
 	StopAnimMontage(CurrentWeapon->GetWeaponAnim().ReloadAnim);
 	WeaponToEquip = InventoryComponent->GiveSlotWeapon(3);
-	if (CurrentWeapon&&WeaponToEquip != WeaponToEquip)
+	if (CurrentWeapon&&CurrentWeapon != WeaponToEquip)
 	{
 		UnEquipWeapon();
 		bWantsToSwapWeapon = true;
@@ -460,19 +471,26 @@ void ABFPlayerCharacter::DetectItem()
 	//#endif
 }
 
-void ABFPlayerCharacter::Update1pMeshTransform()
+void ABFPlayerCharacter::Update1pMeshTransform(const FVector& CameraLocation, const FRotator& CameraRotation)
 {
-	UBFSkeletalMeshComponent* DefMesh1P = Cast<UBFSkeletalMeshComponent>(GetClass()->GetDefaultSubobjectByName(TEXT("Mesh")));
-	const FMatrix DefMeshLS = FRotationTranslationMatrix(DefMesh1P->RelativeRotation, DefMesh1P->RelativeLocation);
-	const FMatrix LocalToWorld = ActorToWorld().ToMatrixWithScale();
-	// Mesh rotating code expect uniform scale in LocalToWorld matrix
-	const FRotator RotCameraPitch(CameraComp->GetComponentRotation().Pitch, 0.0f, 0.0f);
-	const FRotator RotCameraYaw(0.0f, CameraComp->GetComponentRotation().Yaw, 0.0f);
-	const FMatrix LeveledCameraLS = FRotationTranslationMatrix(RotCameraYaw, CameraComp->GetComponentLocation()) * LocalToWorld.Inverse();
-	const FMatrix PitchedCameraLS = FRotationMatrix(RotCameraPitch) * LeveledCameraLS;
-	const FMatrix MeshRelativeToCamera = DefMeshLS * LeveledCameraLS.Inverse();
-	const FMatrix PitchedMesh = MeshRelativeToCamera * PitchedCameraLS;
-	CharacterMesh->SetRelativeLocationAndRotation(PitchedMesh.GetOrigin(), PitchedMesh.Rotator());
+	if (CharacterMesh)
+	{
+		UBFSkeletalMeshComponent* DefMesh1P = CharacterMesh;
+		const FMatrix DefMeshLS = FRotationTranslationMatrix(DefMesh1P->RelativeRotation, DefMesh1P->RelativeLocation);
+		const FMatrix LocalToWorld = ActorToWorld().ToMatrixWithScale();
+
+		// Mesh rotating code expect uniform scale in LocalToWorld matrix
+
+		const FRotator RotCameraPitch(CameraRotation.Pitch, 0.0f, 0.0f);
+		const FRotator RotCameraYaw(0.0f, CameraRotation.Yaw, 0.0f);
+
+		const FMatrix LeveledCameraLS = FRotationTranslationMatrix(RotCameraYaw, CameraLocation) * LocalToWorld.Inverse();
+		const FMatrix PitchedCameraLS = FRotationMatrix(RotCameraPitch) * LeveledCameraLS;
+		const FMatrix MeshRelativeToCamera = DefMeshLS * LeveledCameraLS.Inverse();
+		const FMatrix PitchedMesh = MeshRelativeToCamera * PitchedCameraLS;
+
+		CharacterMesh->SetRelativeLocationAndRotation(PitchedMesh.GetOrigin(), PitchedMesh.Rotator());
+	}
 }
 
 void ABFPlayerCharacter::AimingFOVDelegateCallBack()
@@ -508,6 +526,14 @@ void ABFPlayerCharacter::StopADS_Implementation()
 		bUseControllerRotationYaw = true;
 		CharacterMesh->GetCurrentAnimInstance()->bisADS = false;
 		CurrentWeapon->ResetAdjustedCamera();
+		ABFAttachment_Scope* CurrentScope = Cast<ABFAttachment_Scope>(CurrentWeapon->ScopeSlot.AttachmentInstance);
+		if (CurrentScope)
+		{
+			CurrentScope->OnStopADS();
+		}
+		const FVector CameraAdjustVector = CurrentWeapon->GetADSCameraAdjustVector();
+		FVector BacktoVector(-CameraAdjustVector.X, -CameraAdjustVector.Y, -CameraAdjustVector.Z);
+		CameraComp->AddRelativeLocation(BacktoVector);
 		UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
 		if (CharacterMovement)
 		{
@@ -527,9 +553,16 @@ void ABFPlayerCharacter::ADS_Implementation()
 		if (CurrentWeapon)
 		{
 			bUseControllerRotationYaw = true;
+			ABFAttachment_Scope* CurrentScope = Cast<ABFAttachment_Scope>(CurrentWeapon->ScopeSlot.AttachmentInstance);
+			if (CurrentScope)
+			{
+				CurrentScope->OnADS();
+			}
 			CharacterMesh->GetCurrentAnimInstance()->bisADS = true;
 			UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
 			CurrentWeapon->AdjustCamera();
+			const FVector ADSAdjustVector = CurrentWeapon->GetADSCameraAdjustVector();
+			CameraComp->AddRelativeLocation(ADSAdjustVector);
 			if (CharacterMovement)
 			{
 				bIsADS = true;

@@ -5,10 +5,12 @@
 #include "Engine/World.h"
 #include "Components/ArrowComponent.h"
 #include "Character/BFPlayerCharacter.h"
+#include "Character/BFPlayerCameraManager.h"
 
 ABFPlayerController::ABFPlayerController(const FObjectInitializer& ObjectInitailizer) :Super(ObjectInitailizer)
 {
 	GlobalTimeDialationAmount = 0.15f;
+	PlayerCameraManagerClass = ABFPlayerCameraManager::StaticClass();
 #if WITH_EDITORONLY_DATA
 	ArrowComp = ObjectInitailizer.CreateDefaultSubobject<UArrowComponent>(this, TEXT("Arrow Comp"));
 	ArrowComp->SetupAttachment(RootComponent);

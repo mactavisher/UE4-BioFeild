@@ -15,8 +15,6 @@ UBFWeaponShootComponentBase::UBFWeaponShootComponentBase(const FObjectInitialize
 	bNeedRestoreWeaponSpread = false;
 	bNeedIncreaseWeaponSpread = false;
 	bUseRecoil = false;
-	BaseRecoilValue = -0.1f;
-	CurrentRecoilValue = BaseRecoilValue;
 	// ...
 }
 
@@ -43,7 +41,11 @@ void UBFWeaponShootComponentBase::TickComponent(float DeltaTime, ELevelTick Tick
 	{
 		//@TO-DO this recoil value should be configurable
 		WeaponOwner->RecoilPlayer(CurrentRecoilValue);
-		FMath::Clamp(CurrentRecoilValue+= 0.0003f,BaseRecoilValue,0.f);
+		CurrentRecoilValue = CurrentRecoilValue + 0.0003f;
+		if (CurrentRecoilValue >0.f)
+		{
+			CurrentRecoilValue = 0.f;
+		}
 	}
 }
 

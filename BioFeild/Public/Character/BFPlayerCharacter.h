@@ -79,6 +79,9 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		UCameraComponent*  CameraComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "SpringArm", meta = (AllowPrivateAccess = "true"))
+		USpringArmComponent* SpringArmComp;
+
 	/*create camera sprinArm  for Camera*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		UBFInventoryComponent* InventoryComponent;
@@ -109,7 +112,7 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 protected:
 	/** whether player is ADS or Aiming we can consider it as aiming */
 	UPROPERTY()
-		uint8 bIsADS:1;
+	uint8 bIsADS:1;
 
 	/** specify whether this Character is armed */
 	UPROPERTY()
@@ -147,6 +150,9 @@ protected:
 	UBFAnimInstance* CurrentAnimInstance;
 
 	FOnTimelineFloat AimingFOVTimelineDelegate;
+
+	UPROPERTY()
+	FTransform CameraOriginalRelativeTransform;
 
 protected:
 	virtual void BeginPlay()override;
@@ -285,13 +291,17 @@ public:
 
 	   virtual void DetectItem();
 
-	   virtual void Update1pMeshTransform();
+	   virtual void Update1pMeshTransform(const FVector& CameraLocation, const FRotator& CameraRotation);
 
 	   UFUNCTION()
 		   virtual void AimingFOVDelegateCallBack();
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
 		 virtual FItemTraceDetectResult GetTraceDetectResult()const { return DetectedItemInfo; }
 
+	virtual UBFSkeletalMeshComponent* GetMesh3p()const { return Mesh3PComp; }
+
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
 	virtual EViewMode GetViewMode()const { return ViewMode; }
+
+	virtual FTransform GetCameraOriginalTransform()const { return CameraOriginalRelativeTransform; }
 };

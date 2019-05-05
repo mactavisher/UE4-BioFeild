@@ -30,7 +30,7 @@ void UBTS_ZombieUpdateHasReachLocation::TickNode(UBehaviorTreeComponent& OwnerCo
 			const float DistanceLimit = FMath::RandRange(100.f, 102.f);
 			bool HasReachEnemyLocation = DistanceToEnemyLocation <= DistanceLimit ? true : false;
 			OwnerComp.GetBlackboardComponent()->SetValueAsBool(HasReachEnemyLocationKey, HasReachEnemyLocation);
-			UE_LOG(LogTemp, Warning, TEXT("Zombie to enemy location is %f"), DistanceToEnemyLocation);
+			//UE_LOG(LogTemp, Warning, TEXT("Zombie to enemy location is %f"), DistanceToEnemyLocation);
 		}
 	}
 }

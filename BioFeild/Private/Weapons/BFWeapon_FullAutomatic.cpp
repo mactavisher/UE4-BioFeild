@@ -9,6 +9,7 @@ ABFWeapon_FullAutomatic::ABFWeapon_FullAutomatic(const FObjectInitializer&Object
 	BurstShootComp = ObjectInitializer.CreateDefaultSubobject<UBFWeaponBurstShootComponent>(this, TEXT("BurstShootComp"));
 	PrimaryActorTick.bCanEverTick = true;
 	FireMode = EFireMode::BurstShot;
+	AdjustADSCameraVector = FVector::ZeroVector;
 }
 
 void ABFWeapon_FullAutomatic::Tick(float DeltaTime)
@@ -46,7 +47,10 @@ void ABFWeapon_FullAutomatic::Fire()
 
 void ABFWeapon_FullAutomatic::StopFire()
 {
-	BurstShootComp->FinishsBurstShoot();
+	if (FireMode == EFireMode::BurstShot)
+	{
+		BurstShootComp->FinishsBurstShoot();
+	}
 }
 
 void ABFWeapon_FullAutomatic::ToggleFireMode()
@@ -56,18 +60,12 @@ void ABFWeapon_FullAutomatic::ToggleFireMode()
 		FireMode = EFireMode::SingleShot;
 		BurstShootComp->DisableComponentTick();
 		SingleShootComp->EnableComponentTick();
-#if WITH_EDITOR
-		UE_LOG(LogTemp, Warning, TEXT("Switch to SingleShotMode"));
-#endif
 	}
 	else if (FireMode == EFireMode::SingleShot)
 	{
 		FireMode = EFireMode::BurstShot;
 	    SingleShootComp ->DisableComponentTick();
 		BurstShootComp->EnableComponentTick();
-#if WITH_EDITOR
-		UE_LOG(LogTemp, Warning, TEXT("Switch to BurstShotMode"));
-#endif
 	}
 }
 

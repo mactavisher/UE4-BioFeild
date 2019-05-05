@@ -15,7 +15,6 @@
 #include "EngineMinimal.h"
 #include "Engine/World.h"
 #include "Animation/BFAnimInstance.h"
-#include "Components/BoxComponent.h"
 #include "DrawDebugHelpers.h"
 #include "UI/BFUserWidgetBase.h"
 #include "Effects/BFBulletShell.h"
@@ -26,15 +25,14 @@
 ABFWeaponBase::ABFWeaponBase(const FObjectInitializer& ObjectInitailizer) :Super(ObjectInitailizer)
 {
 	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.SetTickFunctionEnable(false);
 	WeaponMeshComponent = ObjectInitailizer.CreateDefaultSubobject<UBFWeaponMeshComponent>(this, TEXT("Weapon Mesh"));
+	IronSightMeshComp = ObjectInitailizer.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("IronSightComp"));
 	FOVTimeLineComp = ObjectInitailizer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("ZoomingTimeLineComp"));
-	RecoilTimeLineComp = ObjectInitailizer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("RecoilTimeLineComp"));
 	ScopeHolderMeshComp = ObjectInitailizer.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("ScopeHolderComp"));
-	RecoilTimeLineComp->SetIgnoreTimeDilation(false);
+	IronSightMeshComp->SetVisibility(true);
 	RootComponent = WeaponMeshComponent;
-	RecoilPlayerDelegate.BindUFunction(this, "RecoilPlayer");
 	bShouldPlayFirstEquipedAnim = false;
-	ShootCount = 0;
 	canBePickedUp = false;
 	FireLoudness = 500.0f;
 	NoiseRadius = 3000.f;
@@ -44,6 +42,9 @@ ABFWeaponBase::ABFWeaponBase(const FObjectInitializer& ObjectInitailizer) :Super
 	AmmoLeft = WeaponConfigData.MaxAmmo;
 	bIsInMenuMode = false;
 	LastFireTime = 0.f;
+	//RecoilPlayerDelegate.BindUFunction(this, "RecoilPlayer");
+	//RecoilTimeLineComp->SetIgnoreTimeDilation(false);
+	//RecoilTimeLineComp = ObjectInitailizer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("RecoilTimeLineComp"));
 }
 
 // Called when the game starts or when spawned
@@ -51,9 +52,14 @@ void ABFWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
 	CreateWeaponWidgetInstances();
-	RecoilTimeLineComp->AddInterpFloat(RecoilCurve, RecoilPlayerDelegate);
+	//RecoilTimeLineComp->AddInterpFloat(RecoilCurve, RecoilPlayerDelegate);
 	ScopeHolderMeshComp->AttachToComponent(WeaponMeshComponent, FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponMeshComponent->ScopeHolderSocket);
+	IronSightMeshComp->AttachToComponent(WeaponMeshComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponMeshComponent->ScopeSocket);
 	SetupAttachments();
+	if (ScopeSlot.AttachmentInstance)
+	{
+		IronSightMeshComp->SetVisibility(false);
+	}
 }
 
 void ABFWeaponBase::PostInitializeComponents()
@@ -77,33 +83,23 @@ void ABFWeaponBase::Tick(float DeltaTime)
 
 void ABFWeaponBase::Fire()
 {
-	/*if (FireMode == EFireMode::SingleShot)
-	{
-		SingleShot();
-		WeaponOwner->OnFire();
-		GetWorldTimerManager().SetTimer(WeaponSpreadTimerHandle, this, &ABFWeaponBase::DescressSpread, GetWorld()->GetDeltaSeconds(), true, 0.001f);
-	}
-	if (FireMode == EFireMode::ThreeShot)
-	{
-		if (!GetWorldTimerManager().IsTimerActive(ThreeShotTimerhanle))
-		{
-			GetWorldTimerManager().SetTimer(ThreeShotTimerhanle, this, &ABFWeaponBase::SingleShot, WeaponConfigData.TimeBetweenShots, true, 0.f);
-		}
-	}
-	if (FireMode == EFireMode::BurstShot)
-	{
-		if (CheckCanFire())
-		{
-			GetWorldTimerManager().SetTimer(BurstShotTimerHandle, this, &ABFWeaponBase::SingleShot, WeaponConfigData.TimeBetweenShots, true, 0.f);
-			if (RecoilCurve&&RecoilTimeLineComp)
-			{
-					RecoilTimeLineComp->PlayFromStart();
-			}
-		}
-	}*/
+
 }
 
 void ABFWeaponBase::StopFire()
+{
+
+}
+
+void ABFWeaponBase::OnWeaponADS()
+{
+	if (ScopeSlot.AttachmentInstance)
+	{
+
+	}
+}
+
+void ABFWeaponBase::OnWeaponStopADS()
 {
 
 }
@@ -212,7 +208,7 @@ void ABFWeaponBase::AdjustCamera()
 	{
 		ABFAttachment_Scope* CurrentScope = Cast<ABFAttachment_Scope>(ScopeSlot.AttachmentInstance);
 		{
-			 UCameraComponent*const CharacterCamera = WeaponOwner->CameraComp;
+			UCameraComponent*const CharacterCamera = WeaponOwner->CameraComp;
 			const FVector CameraLocation = CharacterCamera->GetRelativeTransform().GetLocation();
 			CharacterCamera->SetRelativeLocation(FVector(CameraLocation.X, CameraLocation.Y, CameraLocation.Z + CurrentScope->CameraZOffSet));
 
@@ -231,6 +227,16 @@ void ABFWeaponBase::ResetAdjustedCamera()
 		//	UCameraComponent* const CharacterCamera = WeaponOwner->CameraComp;
 		//}
 	}
+}
+
+void ABFWeaponBase::OnWeaponEquiped()
+{
+
+}
+
+void ABFWeaponBase::OnWeaponUnEquiped()
+{
+
 }
 
 void ABFWeaponBase::FinishRealoadWeapon()
@@ -282,7 +288,7 @@ FHitResult ABFWeaponBase::TraceDetect()
 		{
 			const ABFAttachment_Scope *const Scope = Cast<ABFAttachment_Scope>(ScopeSlot.AttachmentInstance);
 			const FVector TraceStart = Scope->SceneCaptureComp->GetComponentLocation();
-			const FVector TraceEnd =TraceStart+Scope->SceneCaptureComp->GetForwardVector()*TraceRange;
+			const FVector TraceEnd = TraceStart + Scope->SceneCaptureComp->GetForwardVector()*TraceRange;
 			GetWorld()->LineTraceSingleByChannel(TraceHit, TraceStart, TraceEnd, ECollisionChannel::ECC_Camera);
 #if  WITH_EDITOR
 			//DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Green, false, 2.0f);
@@ -335,7 +341,7 @@ FVector ABFWeaponBase::AdjustProjectileDirection(FHitResult & TraceHit, FVector 
 void ABFWeaponBase::RecoilPlayer(float Value)
 {
 	ABFPlayerController* const PlayerController = GetWeaponOwner()->GetPlayerController();
-	float TimeInPostion = RecoilTimeLineComp->GetPlaybackPosition();
+	//float TimeInPostion = RecoilTimeLineComp->GetPlaybackPosition();
 	if (PlayerController&&RecoilCurve)
 	{
 		//Value = RecoilCurve->GetFloatValue(TimeInPostion)*0.01f;
@@ -346,7 +352,7 @@ void ABFWeaponBase::RecoilPlayer(float Value)
 
 void ABFWeaponBase::RecoilCallBackFunc()
 {
-    
+
 }
 
 void ABFWeaponBase::StopRecoilPlayer()
@@ -356,10 +362,10 @@ void ABFWeaponBase::StopRecoilPlayer()
 
 void ABFWeaponBase::StopRecoilCallBackFunc()
 {
-	if (RecoilTimeLineComp->IsPlaying())
-	{
-		RecoilTimeLineComp->Stop();
-	}
+	//if (RecoilTimeLineComp->IsPlaying())
+	//{
+	//	RecoilTimeLineComp->Stop();
+	//}
 }
 
 void ABFWeaponBase::EjectShell()
@@ -384,7 +390,7 @@ bool ABFWeaponBase::CheckCanFire()
 
 bool ABFWeaponBase::CheckCanReload()
 {
-	
+
 	return AmmoLeft > 0 && WeaponState != EWeaponState::Droped&&WeaponState != EWeaponState::Reload&&WeaponConfigData.AmmoPerClip != CurrentClipAmmo;
 }
 
@@ -401,7 +407,7 @@ void ABFWeaponBase::ToggleFireMode()
 
 void ABFWeaponBase::ToggleAimMode()
 {
-	AimingMode = AimingMode== EAmingMode::Aim ? EAmingMode::ADS : EAmingMode::Aim;
+	AimingMode = AimingMode == EAmingMode::Aim ? EAmingMode::ADS : EAmingMode::Aim;
 }
 
 void ABFWeaponBase::SetWeaponReadyForPickingUp()
@@ -476,7 +482,7 @@ FVector ABFWeaponBase::GetAimDirection()
 
 void ABFWeaponBase::CreateWeaponWidgetInstances()
 {
-	
+
 }
 
 void ABFWeaponBase::SetupAttachments()
@@ -489,7 +495,7 @@ void ABFWeaponBase::SetupAttachments()
 			ScopeSlot.AttachmentInstance->SetWeaponOwner(this);
 			if (ScopeHolderMeshComp->GetSocketByName("ScopePoint"))
 			{
-				ScopeSlot.AttachmentInstance->AttachToComponent(ScopeHolderMeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale,"ScopePoint");
+				ScopeSlot.AttachmentInstance->AttachToComponent(ScopeHolderMeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "ScopePoint");
 			}
 			else {
 				ScopeSlot.AttachmentInstance->AttachToComponent(WeaponMeshComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponMeshComponent->ScopeSocket);
@@ -510,11 +516,16 @@ void ABFWeaponBase::OnCollect()
 
 }
 
+FVector ABFWeaponBase::GetADSCameraAdjustVector() const
+{
+	return FVector::ZeroVector;
+}
+
 void ABFWeaponBase::ReceiveReloadFinished()
 {
 	if (!bIsInMenuMode)
 	{
-	
+
 	}
 }
 
@@ -535,7 +546,7 @@ void ABFWeaponBase::ReciveFinishEquiping()
 
 void ABFWeaponBase::ReceiveUnequiping()
 {
-	
+
 }
 
 void ABFWeaponBase::SetIsMenuMode(bool IsInMenuMode)

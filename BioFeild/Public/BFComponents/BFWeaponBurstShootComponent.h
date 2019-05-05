@@ -16,16 +16,16 @@ class BIOFEILD_API UBFWeaponBurstShootComponent : public UBFWeaponShootComponent
 	
 protected:
 
+	UPROPERTY()
 	FTimerHandle BurstShootTimerHandle;
-
-	virtual void EachSingleShoot() override;
 
 public:
 	virtual void SimulateBurstShoot();
 	virtual void FinishsBurstShoot();
 	virtual void EnableComponentTick()override;
 	virtual void DisableComponentTick()override;
+protected:
 	virtual void BeginPlay()override;
-
+	virtual void EachSingleShoot() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)override;
 };

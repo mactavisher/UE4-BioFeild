@@ -12,9 +12,10 @@
 UCLASS()
 class BIOFEILD_API ABFPainCausingVolume : public APainCausingVolume
 {
-	GENERATED_BODY()
-	
-	
-	
-	
+	GENERATED_UCLASS_BODY()
+
+		UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category="PainVolume")
+		uint8 bCausingPainToPlayerCharacter : 1;
+
+		virtual void CausePainTo(class AActor* Other)override;
 };

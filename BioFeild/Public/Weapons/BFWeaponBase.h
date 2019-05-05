@@ -41,11 +41,13 @@ enum class EWeaponType :uint8 {
 
 UENUM(BlueprintType)
 enum class EWeaponNames :uint8 {
-	AK47                                      UMETA(DisplayName = "AK47"),
-	SKS                                               UMETA(DisplayName = "SKS"),
-	ShotGun                                               UMETA(DisplayName = "ShotGun"),
-	SCAR                                                UMETA(DisplayName = "SCAR"),
-	XM8                                                   UMETA(DisplayName = "XM8")
+	AK47                                                   UMETA(DisplayName = "AK47"),
+	SKS                                                     UMETA(DisplayName = "SKS"),
+	ShotGun                                              UMETA(DisplayName = "ShotGun"),
+	SCAR                                                  UMETA(DisplayName = "SCAR"),
+	XM8                                                   UMETA(DisplayName = "XM8"),
+	CLOCK18                                            UMETA(DisplayName = "Clock18"),
+	MP7                                                   UMETA(DisplayName = "MP7")
 };
 
 /**weapon types can be assigned via blueprints*/
@@ -80,6 +82,7 @@ USTRUCT(BlueprintType)
 struct FWeaponAttachmentSlot {
 
 	GENERATED_USTRUCT_BODY()
+
 		/** attachment slot where this attachment attach to  */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AttachmentSlot")
 		FName AttachmentSlotName;
@@ -109,7 +112,6 @@ struct FWeaponAttachmentSlot {
 
 USTRUCT(BlueprintType)
 struct FWeaponAnim {
-
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
@@ -182,7 +184,7 @@ struct FWeaponConfigData {
 	FWeaponConfigData()
 	{
 		AmmoPerClip = 33;
-		MaxAmmo = 250;
+		MaxAmmo = 120;
 		TimeBetweenShots = 0.13f;
 		BaseDamage = 35.f;
 	}
@@ -234,11 +236,14 @@ class BIOFEILD_API ABFWeaponBase : public ABFInventoryItem
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WeponMesh", meta = (AllowPrivateAccess = "true"))
 		UStaticMeshComponent* ScopeHolderMeshComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WeponMesh", meta = (AllowPrivateAccess = "true"))
+		UStaticMeshComponent* IronSightMeshComp;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ZoomingTimeLineComp", meta = (AllowePrivateAccess = "true"))
 		UTimelineComponent* FOVTimeLineComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RecoilTimeLineComp", meta = (AllowePrivateAccess = "true"))
-		UTimelineComponent* RecoilTimeLineComp;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "RecoilTimeLineComp", meta = (AllowePrivateAccess = "true"))
+	//	UTimelineComponent* RecoilTimeLineComp;
 
 	/** specify weapon type ,weapon type can be assigned via blueprint */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Type")
@@ -391,9 +396,6 @@ protected:
 	/** ammo left in pocket */
 	int32 AmmoLeft;
 
-	/**  current count for three shot mode ,after finished, this value should be restore to 0 */
-	int32 ShootCount;
-
 	/** slot index the weapon hold in */
 	uint8 WeaponSlotIndex;
 
@@ -412,10 +414,9 @@ protected:
 	/** timer for destroy self after dropped or spawned but not picked up  */
 	FTimerHandle DestroySelfTimerHandle;
 
+	//FOnTimelineFloat RecoilPlayerDelegate;
 
-	FOnTimelineFloat RecoilPlayerDelegate;
-
-	FOnTimelineEventStatic RecoilFinishedDelegate;
+	//FOnTimelineEventStatic RecoilFinishedDelegate;
 
 	/** is this weapon ready for players to picked up  */
 	bool canBePickedUp;
@@ -423,9 +424,9 @@ protected:
 	/** record the last fire time */
 	float LastFireTime;
 
-	/** adjust camera z off set to adapt  view location */
+	/** adjust camera z off set to adapt  view location ,different weapon have different Z-off set*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera")
-		float CameraZOffSet;
+		FVector AdjustADSCameraVector;
 
 	/** is this weapon in menu mode */
 
@@ -447,6 +448,9 @@ public:
 
 	virtual void StopFire();
 
+	virtual void OnWeaponADS();
+
+	virtual void OnWeaponStopADS();
 	/** one shot on each click */
 	//virtual void SingleShot();
 
@@ -600,6 +604,8 @@ public:
 
 	virtual void OnCollect();
 
+	virtual FVector GetADSCameraAdjustVector()const;
+
 	/*******************************************************/
 	/*************receive event from wepon onwer***/
 	/******************************************************/
@@ -635,4 +641,8 @@ public:
 	virtual  float GetCurrentWeaponSpread()const { return WeaponSpreadData.CurrentWeaponSpread; }
 
 	virtual void SetCurrentWeaponSpread(float Value) { WeaponSpreadData.CurrentWeaponSpread = Value; }
+
+	virtual void OnWeaponEquiped();
+
+	virtual void OnWeaponUnEquiped();
 };
