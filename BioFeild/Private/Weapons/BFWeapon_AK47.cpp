@@ -47,9 +47,9 @@ FVector ABFWeapon_AK47::GetADSCameraAdjustVector()const
 	FVector AdjustedVector = FVector::ZeroVector;
 	if (!ScopeSlot.AttachmentInstance)
 	{
-		FVector IronSightADSCameraVector = FVector(21.f, -0.2f, -3.8f);
+		FVector IronSightADSCameraVector = FVector(30.f, -0.2f, -3.8f);
 		return IronSightADSCameraVector;
 	}
-	return  FVector(21.f, 0.f, 0.f);
+	return  FVector(35.f, 0.f, 0.2f);
 }
 

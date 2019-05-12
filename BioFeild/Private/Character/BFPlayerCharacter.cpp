@@ -13,9 +13,10 @@
 #include "BFComponents/BFInventoryComponent.h"
 #include "BFComponents/BFWeaponMeshComponent.h"
 #include "EngineMinimal.h"
-#include "UI/BFUserWidgetBase.h"
 #include "Animation/BFAnimInstance.h"
 #include "Bot/BFZombie.h"
+#include "UI/BFCharacterWidget.h"
+#include "UI/BFCurrentWeaponWidget.h"
 #include "Attachments/BFAttachment_Scope.h"
 #include "GameFrameWork/Actor.h"
 
@@ -26,6 +27,7 @@ ABFPlayerCharacter::ABFPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	CameraComp = ObjectInitializer.CreateDefaultSubobject<UCameraComponent>(this, TEXT("CameraComp"));
 	Mesh3PComp = ObjectInitializer.CreateDefaultSubobject<UBFSkeletalMeshComponent>(this, TEXT("Character3pMesh"));
 	InventoryComponent = ObjectInitializer.CreateDefaultSubobject<UBFInventoryComponent>(this, TEXT("InventoryComp"));
+	GetCapsuleComponent()->SetCapsuleRadius(GetCapsuleComponent()->GetScaledCapsuleRadius()*1.5f);
 	AimingFOVTimeLineComponent = ObjectInitializer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("AimingFOVTimelineComp"));
 	NoiseEmmiterComp = ObjectInitializer.CreateDefaultSubobject<UPawnNoiseEmitterComponent>(this, TEXT("NoiseEmmiter"));
 	//SpringArmComp->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
@@ -62,7 +64,15 @@ void ABFPlayerCharacter::BeginPlay()
 	//add relative location to match 3p mesh bone location for later use purpose
 	CharacterMesh->AddRelativeLocation(FVector(18.f,0.f,-150.f));
 	// adjust camera location to match weapon action such as ADS,this should be a valuable get from from weapon property
-	CameraComp->AddRelativeLocation(FVector(-6.f,0.f,20.25f));
+	CameraComp->AddRelativeLocation(FVector(-5.f,0.f,20.25f));
+	CreateCharacterWidgetInstance();
+}
+
+void ABFPlayerCharacter::ResetTargetHitInfo()
+{
+	TargetHitInfo.bIsTargetDead = false;
+	TargetHitInfo.DamgeCause = 0.f;
+	TargetHitInfo.Victim = nullptr;
 }
 
 void ABFPlayerCharacter::Tick(float DeltaTime)
@@ -121,6 +131,7 @@ void ABFPlayerCharacter::EquipWeapon()
 		UAnimMontage* EquipAnimMotage = nullptr;
 		CurrentAnimInstance->bIsArmed = true;
 		CurrentWeapon = WeaponToEquip;
+		CurrentWeapon->OnWeaponEquiping();
 		float Duration = 0.5f;
 		bIsArmed = true;
 		CurrentAnimInstance->CurrentWeaponType = CurrentWeapon->GetWeaponType();
@@ -144,8 +155,7 @@ void ABFPlayerCharacter::FinishEquipWeapon()
 	WeaponToEquip = nullptr;
 	CharacterActionType = ECharacterWeaponAction::Idle;
 	bWantsToSwapWeapon = false;
-	CurrentWeapon->ReciveFinishEquiping();
-	CurrentWeapon->OnWeaponEquiped();
+	CurrentWeapon->OnWeaponEquipingFinished();
 	OnCharacterArmed();
 }
 
@@ -156,6 +166,7 @@ void ABFPlayerCharacter::UnEquipWeapon()
 		UAnimMontage* UnEquipMontage = nullptr;
 		float Duration = 0.5f;
 		CurrentAnimInstance->bIsArmed = false;
+		CurrentWeapon->OnWeaponEquiping();
 	    UnEquipMontage = CurrentWeapon->GetWeaponAnim_FPS().UnEquipAnim;
 		Duration = PlayAnimMontage(UnEquipMontage, 1.0f, NAME_None);
 		GetWorldTimerManager().SetTimer(UnequipWeaponTimerHanle, this, &ABFPlayerCharacter::FinishUnEquipWeapon, 1.0f, false, Duration);
@@ -165,10 +176,7 @@ void ABFPlayerCharacter::UnEquipWeapon()
 
 void ABFPlayerCharacter::FinishUnEquipWeapon()
 {
-	CurrentWeapon->OnWeaponUnEquiped();
-	InventoryComponent->WeaponSlots[CurrentWeapon->GetWeaponSlotIndex()].SlotWeapon = CurrentWeapon;//put the weapon back to inventory
-	InventoryComponent->WeaponSlots[CurrentWeapon->GetWeaponSlotIndex()].bIsSlotOccupied = true;
-	CurrentWeapon->ReceiveUnequiping();
+	CurrentWeapon->OnWeaponUnequipingFinished();
 	CurrentWeapon = nullptr;
 	bIsArmed = false;
 	CharacterActionType = ECharacterWeaponAction::Idle;
@@ -219,7 +227,7 @@ void ABFPlayerCharacter::DetachCurrentWeaponFromHand()
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->WeaponMeshComponent->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-		CurrentWeapon->WeaponMeshComponent->SetSimulatePhysics(true);
+		//CurrentWeapon->WeaponMeshComponent->SetSimulatePhysics(true);
 	}
 }
 
@@ -280,6 +288,20 @@ void ABFPlayerCharacter::ToggleAimMode()
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->ToggleAimMode();
+	}
+}
+
+void ABFPlayerCharacter::CreateCharacterWidgetInstance()
+{
+	if (CharacterWidgetClass)
+	{
+		CharacterWidgetInstance = CreateWidget<UBFCharacterWidget>(GetPlayerController(), CharacterWidgetClass);
+		CharacterWidgetInstance->AddToViewport(0);
+	}
+	if (CurrenetWeaponWidgetClass)
+	{
+		CurrentWeaponWidgetInstance = CreateWidget<UBFCurrentWeaponWidget>(GetPlayerController(), CurrenetWeaponWidgetClass);
+		CurrentWeaponWidgetInstance->AddToViewport(0);
 	}
 }
 
@@ -469,6 +491,24 @@ void ABFPlayerCharacter::DetectItem()
 	//#if WITH_EDITOR
 	//	DrawDebugLine(GetWorld(), CameraComp->GetComponentLocation(), CameraComp->GetComponentLocation()+CameraComp->GetForwardVector()*TraceLength,FColor::Green,false,0.05f);
 	//#endif
+}
+
+void ABFPlayerCharacter::InitializeUserWidget()
+{
+	//create inventory widget
+	if (InventoryComponent->InventoryWidgetClass)
+	{
+		InventoryComponent->SetInventoryWidget(CreateWidget<UBFUserWidgetBase>(GetPlayerController(), InventoryComponent->InventoryWidgetClass));
+		InventoryComponent->GetInventoryWidget()->AddToViewport(0);
+	}
+}
+
+void ABFPlayerCharacter::ReceiveHitTarget(float DamageAmount, bool VictimDead, class ABFBaseCharacter* Victim)
+{
+	TargetHitInfo.bIsTargetDead = VictimDead;
+	TargetHitInfo.DamgeCause = DamageAmount;
+	Victim = Victim;
+	GetWorldTimerManager().SetTimer(ResetTargetHitInfoTimerHandle,this, &ABFPlayerCharacter::ResetTargetHitInfo,1.0f, false,0.15f);
 }
 
 void ABFPlayerCharacter::Update1pMeshTransform(const FVector& CameraLocation, const FRotator& CameraRotation)

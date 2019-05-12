@@ -118,7 +118,7 @@ float UBFSkeletalMeshComponent::CalculatePitchOffSet()
 	return Pitch;
 }
 
-void UBFSkeletalMeshComponent::ReceiveProjectileHit(ABFProjectile* HitProjectile, float DamageAmount, FVector NormalImpulse,const FHitResult HitResult)
+bool UBFSkeletalMeshComponent::ReceiveProjectileHit(ABFProjectile* HitProjectile, float DamageAmount, FVector NormalImpulse,const FHitResult HitResult)
 {
 	this->LastHitProjectile = HitProjectile;
 	const FDamageEvent DamageEvent = HitProjectile->GetDamageEvent();
@@ -128,6 +128,7 @@ void UBFSkeletalMeshComponent::ReceiveProjectileHit(ABFProjectile* HitProjectile
 	{
 		this->AddImpulseAtLocation(HitProjectile->GetVelocity()*ImpulseModifier, HitProjectile->GetActorLocation(), NAME_None);
 	}
+	return OwnerCharacter->GetCharacterIsDead();
 }
 
 bool UBFSkeletalMeshComponent::CalculateCanStepOn()

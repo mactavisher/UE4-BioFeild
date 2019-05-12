@@ -32,6 +32,10 @@ void ABFAttachment_Scope::BeginPlay()
 	//EnableSceneCapture();
 	ScopeGrassMat = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, ScopeGrassMat)->GetMaterial();
 	ADSMat = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, ADSMat)->GetMaterial();
+	SceneCaptureComp->CreatePhysicsState();
+	MeshComp->SetMaterial(1, ADSMat); // apply this material one time ,and then switch to the default will prevent game stuck run in time when apply this render target texture
+	MeshComp->SetMaterial(1, ScopeGrassMat);
+	EnableSceneCapture();
 	DisableSceneCapture();//turn off scencaptrue by default;
 }
 

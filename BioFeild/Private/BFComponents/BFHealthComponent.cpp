@@ -30,6 +30,23 @@ void UBFHealthComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
+void UBFHealthComponent::EnableComponentTick()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.SetTickFunctionEnable(true);
+}
+
+void UBFHealthComponent::DisableComponentTick()
+{
+	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.SetTickFunctionEnable(false);
+}
+
+void UBFHealthComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+}
+
 void UBFHealthComponent::SetHealth(float Health)
 {
 	if (!OwnerCharacter->GetCharacterIsDead())

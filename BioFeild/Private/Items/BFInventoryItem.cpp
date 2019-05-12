@@ -7,12 +7,12 @@
 ABFInventoryItem::ABFInventoryItem(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.SetTickFunctionEnable(false);
 }
 
 void ABFInventoryItem::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void ABFInventoryItem::ReceiveDetected(class AActor* DetectedBy, class ABFBaseCharacter* DectectedCharacter, class ABFPlayerController* DectedPlayer)
@@ -26,8 +26,4 @@ void ABFInventoryItem::ReceiveDetected(class AActor* DetectedBy, class ABFBaseCh
 	}
 }
 
-void ABFInventoryItem::NotifyReaction(class AActor* NotifiedActor)
-{
-
-}
 

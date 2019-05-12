@@ -51,12 +51,12 @@ void ABFWeapon_HandGun::SetupAttachments()
 	Super::SetupAttachments();
 }
 
-void ABFWeapon_HandGun::OnWeaponEquiped()
+void ABFWeapon_HandGun::OnWeaponEquipingFinished()
 {
 	SingleShotComp->EnableComponentTick();
 }
 
-void ABFWeapon_HandGun::OnWeaponUnEquiped()
+void ABFWeapon_HandGun::OnWeaponUnequipingFinished()
 {
 	SingleShotComp->DisableComponentTick();
 }

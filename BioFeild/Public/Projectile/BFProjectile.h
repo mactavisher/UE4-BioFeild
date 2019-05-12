@@ -17,7 +17,7 @@ class ABFBaseCharacter;
 class UDamageType;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FProjectileHitSignature, ABFProjectile*, HitProjectile, float, DamageAmount, FVector, NormalImpulse);
-UCLASS(Abstract)
+UCLASS(Abstract,notplaceable)
 class BIOFEILD_API ABFProjectile : public AActor
 {
 	GENERATED_UCLASS_BODY()
@@ -52,8 +52,8 @@ protected:
 	UPROPERTY()
 		ABFWeaponBase*  WeaponOwner;
 
+	/** hit result when this projectile hit something */
 	UPROPERTY()
-		/** hit result when this projectile hit something */
 		FHitResult HitResult;
 
 	UPROPERTY()
@@ -82,4 +82,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "BFProjectile")
 		virtual FDamageEvent GetDamageEvent()const { return ProjectileDamageEvent; }
+
+	virtual void NotifyPlayerHitTarget(ABFPlayerController* PlayerToNotify, float DamageAmount, bool bIsTargetDead, class ABFBaseCharacter* Victim);
 };

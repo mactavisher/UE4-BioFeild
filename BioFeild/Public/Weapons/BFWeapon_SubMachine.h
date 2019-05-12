@@ -32,8 +32,8 @@ protected:
 	/** sub machine gun only have single shoot component, so we can't switch mode */
 	virtual void ToggleFireMode()override;
 
-	virtual void OnWeaponEquiped()override;
+	virtual void OnWeaponEquipingFinished()override;
 
-	virtual void OnWeaponUnEquiped()override;
+	virtual void OnWeaponUnequipingFinished()override;
 	
 };

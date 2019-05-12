@@ -21,6 +21,8 @@
 #include "Curves/CurveFloat.h"
 #include "Attachments/BFAttachment_Silencer.h"
 #include "Attachments/BFAttachment_Scope.h"
+#include "Components/SceneComponent.h"
+#include "BFComponents/BFInventoryComponent.h"
 
 ABFWeaponBase::ABFWeaponBase(const FObjectInitializer& ObjectInitailizer) :Super(ObjectInitailizer)
 {
@@ -38,8 +40,6 @@ ABFWeaponBase::ABFWeaponBase(const FObjectInitializer& ObjectInitailizer) :Super
 	NoiseRadius = 3000.f;
 	WeaponState = EWeaponState::Idle;
 	AimingMode = EAmingMode::Aim;
-	CurrentClipAmmo = WeaponConfigData.AmmoPerClip;
-	AmmoLeft = WeaponConfigData.MaxAmmo;
 	bIsInMenuMode = false;
 	LastFireTime = 0.f;
 	//RecoilPlayerDelegate.BindUFunction(this, "RecoilPlayer");
@@ -60,6 +60,7 @@ void ABFWeaponBase::BeginPlay()
 	{
 		IronSightMeshComp->SetVisibility(false);
 	}
+	HideWeapon();
 }
 
 void ABFWeaponBase::PostInitializeComponents()
@@ -99,6 +100,47 @@ void ABFWeaponBase::OnWeaponADS()
 	}
 }
 
+void ABFWeaponBase::HideWeapon()
+{
+	//hide attached children
+	WeaponMeshComponent->SetVisibility(false);
+	TArray<USceneComponent*> WeaponAttachmentsMeshs = WeaponMeshComponent->GetAttachChildren();
+	for (int32 i = 0; i < WeaponAttachmentsMeshs.Num() - 1; i++)
+	{
+		WeaponAttachmentsMeshs[i]->SetVisibility(false);
+	}
+
+	//hide attached weapon attachments
+	if (ScopeSlot.AttachmentInstance)
+	{
+		ScopeSlot.AttachmentInstance->MeshComp->SetVisibility(false);
+	}
+	if (SilencerSlot.AttachmentInstance)
+	{
+		SilencerSlot.AttachmentInstance->MeshComp->SetVisibility(false);
+	}
+}
+
+void ABFWeaponBase::RenderWeapon()
+{
+	//Render weapon mesh and it's children
+	WeaponMeshComponent->SetVisibility(true);
+	TArray<USceneComponent*> WeaponAttachmentsMeshs = WeaponMeshComponent->GetAttachChildren();
+	for (int32 i = 0; i < WeaponAttachmentsMeshs.Num() - 1; i++)
+	{
+		WeaponAttachmentsMeshs[i]->SetVisibility(true);
+	}
+	//render attached weapon attachments
+	if (ScopeSlot.AttachmentInstance)
+	{
+		ScopeSlot.AttachmentInstance->MeshComp->SetVisibility(true);
+	}
+	if (SilencerSlot.AttachmentInstance)
+	{
+		SilencerSlot.AttachmentInstance->MeshComp->SetVisibility(true);
+	}
+}
+
 void ABFWeaponBase::OnWeaponStopADS()
 {
 
@@ -127,42 +169,9 @@ void ABFWeaponBase::SingleShot()
 		WeaponMeshComponent->PlayAnimation(WeaponGunAnim.FireAnim, false);
 		PlayFireEffects();
 		EjectShell();
-		FMath::Clamp(CurrentClipAmmo--, 0, 10000);
-		//		if (FireMode == EFireMode::ThreeShot)
-		//		{
-		//			ShootCount++;
-		//			if (ShootCount == 3)
-		//			{
-		//				//clear timer
-		//				GetWorldTimerManager().ClearTimer(ThreeShotTimerhanle);
-		//				//restore shoot count and spread  ;
-		//				ShootCount = 0;
-		//			}
-		//		}
-		//		if (!CheckCanFire())
-		//		{
-		//			WeaponSpreadData.WeaponSpreadBase = 0.f;
-		//			if (RecoilTimeLineComp->IsPlaying())
-		//			{
-		//				RecoilTimeLineComp->Stop();
-		//			}
+		UseAmmo();
 	}
 }
-
-//void ABFWeaponBase::BurstShotFinished()
-//{
-//	if (FireMode == EFireMode::BurstShot)
-//	{
-//		GetWorldTimerManager().ClearTimer(BurstShotTimerHandle);
-//		GetWorldTimerManager().SetTimer(WeaponSpreadTimerHandle, this, &ABFWeaponBase::DescressSpread, GetWorld()->GetDeltaSeconds(), true, 0.1f);
-//		CurrentSpread = 0.f;
-//		if (RecoilTimeLineComp)
-//		{
-//			RecoilTimeLineComp->SetPlaybackPosition(0.f, true, true);
-//			RecoilTimeLineComp->Stop();
-//		}
-//	}
-//}
 
 void ABFWeaponBase::ReloadWeapon()
 {
@@ -181,26 +190,17 @@ void ABFWeaponBase::ReloadWeapon()
 		AnimDuration = WeaponOwner->PlayAnimMontage(ReloadAnim, 1.f, NAME_None);
 		WeaponMeshComponent->PlayAnimation(WeaponGunAnim.ReloadAnim, false);
 		WeaponState = EWeaponState::Reload;
-		ReceiveReloading();
 		GetWorldTimerManager().SetTimer(ReloadWeaponTimerHandle, this, &ABFWeaponBase::FinishRealoadWeapon, 1.f, false, AnimDuration);
 	}
 }
 
-void ABFWeaponBase::ReceiveDetected()
-{
-
-}
 
 void ABFWeaponBase::ReceiveDetected(class AActor* DetectedBy, class ABFBaseCharacter* DectectedCharacter, class ABFPlayerController* DectedPlayer)
 {
 	Super::ReceiveDetected(DetectedBy, DectectedCharacter, DectedPlayer);
-	WeaponMeshComponent->bRenderCustomDepth = true;
+	WeaponMeshComponent->SetRenderCustomDepth(true);
 }
 
-void ABFWeaponBase::NotifyReaction(class AActor* NotifiedActor)
-{
-
-}
 
 void ABFWeaponBase::AdjustCamera()
 {
@@ -211,7 +211,6 @@ void ABFWeaponBase::AdjustCamera()
 			UCameraComponent*const CharacterCamera = WeaponOwner->CameraComp;
 			const FVector CameraLocation = CharacterCamera->GetRelativeTransform().GetLocation();
 			CharacterCamera->SetRelativeLocation(FVector(CameraLocation.X, CameraLocation.Y, CameraLocation.Z + CurrentScope->CameraZOffSet));
-
 			//adjust attach location
 		}
 	}
@@ -229,31 +228,20 @@ void ABFWeaponBase::ResetAdjustedCamera()
 	}
 }
 
-void ABFWeaponBase::OnWeaponEquiped()
-{
-
-}
-
-void ABFWeaponBase::OnWeaponUnEquiped()
-{
-
-}
-
 void ABFWeaponBase::FinishRealoadWeapon()
 {
-	const int32 DeltaAmmo = WeaponConfigData.AmmoPerClip - CurrentClipAmmo;
-	if (AmmoLeft <= DeltaAmmo)
+	const int32 DeltaAmmo = WeaponConfigData.AmmoPerClip - WeaponConfigData.CurrentClipAmmo;
+	if (WeaponConfigData.AmmoLeft <= DeltaAmmo)
 	{
-		CurrentClipAmmo += DeltaAmmo;
-		AmmoLeft = 0;
+		WeaponConfigData.CurrentClipAmmo += DeltaAmmo;
+		WeaponConfigData.AmmoLeft = 0;
 	}
-	if (AmmoLeft > DeltaAmmo)
+	if (WeaponConfigData.AmmoLeft > DeltaAmmo)
 	{
-		CurrentClipAmmo += DeltaAmmo;
-		AmmoLeft -= DeltaAmmo;
+		WeaponConfigData.CurrentClipAmmo += DeltaAmmo;
+		WeaponConfigData.AmmoLeft -= DeltaAmmo;
 	}
 	WeaponState = EWeaponState::Idle;
-	ReceiveReloadFinished();
 }
 
 /** spawn a projectile each time weapon shots  */
@@ -341,12 +329,9 @@ FVector ABFWeaponBase::AdjustProjectileDirection(FHitResult & TraceHit, FVector 
 void ABFWeaponBase::RecoilPlayer(float Value)
 {
 	ABFPlayerController* const PlayerController = GetWeaponOwner()->GetPlayerController();
-	//float TimeInPostion = RecoilTimeLineComp->GetPlaybackPosition();
 	if (PlayerController&&RecoilCurve)
 	{
-		//Value = RecoilCurve->GetFloatValue(TimeInPostion)*0.01f;
 		PlayerController->AddPitchInput(Value);
-		UE_LOG(LogTemp, Warning, TEXT("Recoil value %f"), Value);
 	}
 }
 
@@ -385,13 +370,18 @@ void ABFWeaponBase::EjectShell()
 
 bool ABFWeaponBase::CheckCanFire()
 {
-	return CurrentClipAmmo > 0 && GetWeaponOwner() != nullptr&&WeaponState != EWeaponState::Reload;
+	return WeaponConfigData.CurrentClipAmmo > 0 && GetWeaponOwner() != nullptr&&WeaponState != EWeaponState::Reload;
+}
+
+void ABFWeaponBase::UseAmmo()
+{
+	FMath::Clamp(WeaponConfigData.CurrentClipAmmo--, 0, 10000);
 }
 
 bool ABFWeaponBase::CheckCanReload()
 {
 
-	return AmmoLeft > 0 && WeaponState != EWeaponState::Droped&&WeaponState != EWeaponState::Reload&&WeaponConfigData.AmmoPerClip != CurrentClipAmmo;
+	return WeaponConfigData.AmmoLeft > 0 && WeaponState != EWeaponState::Droped&&WeaponState != EWeaponState::Reload&&WeaponConfigData.AmmoPerClip != WeaponConfigData.CurrentClipAmmo;
 }
 
 void ABFWeaponBase::SetAmingMode(EAmingMode::Type NewAmingMode)
@@ -466,7 +456,11 @@ void ABFWeaponBase::PlayFireEffects()
 
 void ABFWeaponBase::SetAmmoLeft(const int32 Ammo)
 {
-	FMath::Clamp(AmmoLeft + Ammo, 0, WeaponConfigData.MaxAmmo);
+	WeaponConfigData.AmmoLeft = WeaponConfigData.AmmoLeft + Ammo;
+	if (WeaponConfigData.AmmoLeft > WeaponConfigData.MaxAmmo)
+	{
+		WeaponConfigData.AmmoLeft = WeaponConfigData.MaxAmmo;
+	}
 }
 
 FVector ABFWeaponBase::GetAimDirection()
@@ -511,40 +505,41 @@ void ABFWeaponBase::SetupAttachments()
 	}
 }
 
-void ABFWeaponBase::OnCollect()
-{
-
-}
 
 FVector ABFWeaponBase::GetADSCameraAdjustVector() const
 {
 	return FVector::ZeroVector;
 }
 
-void ABFWeaponBase::ReceiveReloadFinished()
-{
-	if (!bIsInMenuMode)
-	{
 
-	}
+void ABFWeaponBase::OnWeaponEquiping()
+{
+	RenderWeapon();
 }
 
-void ABFWeaponBase::ReceiveReloading()
+void ABFWeaponBase::OnWeaponEquipingFinished()
 {
 
 }
 
-void ABFWeaponBase::ReceiveEquiping()
-{
-	//by default nothing to do currently , but this event will get received
-}
-
-void ABFWeaponBase::ReciveFinishEquiping()
+void ABFWeaponBase::OnWeaponUnequiping()
 {
 
 }
 
-void ABFWeaponBase::ReceiveUnequiping()
+void ABFWeaponBase::OnWeaponUnequipingFinished()
+{
+	WeaponOwner->InventoryComponent->WeaponSlots[GetWeaponSlotIndex()].SlotWeapon = this;//put the weapon back to inventory
+	WeaponOwner->InventoryComponent->WeaponSlots[GetWeaponSlotIndex()].bIsSlotOccupied = true;
+	HideWeapon();
+}
+
+void ABFWeaponBase::OnWeaponReloading()
+{
+	  
+}
+
+void ABFWeaponBase::OnWeaponReloadingFinished()
 {
 
 }

@@ -19,7 +19,7 @@ void UBFWeaponTripleShootComponent::EachSingleShoot()
 	Super::EachSingleShoot();
 	ShootCount++;
 	//if 3 shoot finished , then clear the timer,or weapon can't satisfy to finish 3 shoot , clear the timer
-	if (ShootCount == 3||(ShootCount < 3 && WeaponOwner->GetCurrentAmmo() == 0))
+	if (ShootCount == 3||(ShootCount < 3 && WeaponOwner->GetCurrentClipAmmo() == 0))
 	{
 		FinishTripleShoot();
 	}

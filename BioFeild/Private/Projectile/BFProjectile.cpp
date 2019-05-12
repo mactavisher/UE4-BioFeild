@@ -92,7 +92,9 @@ void ABFProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 		UBFSkeletalMeshComponent* HitSkeleton = Cast<UBFSkeletalMeshComponent>(OtherComp);
 		if (HitSkeleton)
 		{
-			HitSkeleton->ReceiveProjectileHit(this, DeterminDamage(Hit), NormalImpulse,Hit);
+			float DamageTaken = DeterminDamage(Hit);
+			bool bIstargetDead = HitSkeleton->ReceiveProjectileHit(this, DamageTaken, NormalImpulse,Hit);
+			NotifyPlayerHitTarget(WeaponOwner->GetWeaponOwner()->GetPlayerController(), DamageTaken, bIstargetDead,HitSkeleton->GetCharacterOwner());
 		}
 		SpawnImpactEffect(Hit);
 	}
@@ -102,5 +104,10 @@ void ABFProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 float  ABFProjectile::GetDamageTaken()
 {
 	return DeterminDamage(HitResult);
+}
+
+void ABFProjectile::NotifyPlayerHitTarget(ABFPlayerController* PlayerToNotify,float DamageAmount,bool bIsTargetDead,class ABFBaseCharacter* Victim)
+{
+	PlayerToNotify->GetPoccessedPlayerCharacter()->ReceiveHitTarget(DamageAmount,bIsTargetDead,Victim);
 }
 

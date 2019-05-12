@@ -37,7 +37,7 @@ protected:
 
 	virtual void SetupAttachments()override;
 
-	virtual void OnWeaponEquiped()override;
+	virtual void OnWeaponEquipingFinished()override;
 
-	virtual void OnWeaponUnEquiped()override;
+	virtual void OnWeaponUnequipingFinished()override;
 };

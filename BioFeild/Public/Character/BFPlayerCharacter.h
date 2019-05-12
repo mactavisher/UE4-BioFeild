@@ -65,6 +65,28 @@ struct FItemTraceDetectResult {
 	}
 };
 
+USTRUCT(BlueprintType)
+struct FTargetHitInfo {
+
+	GENERATED_USTRUCT_BODY()
+
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		float DamgeCause;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		uint8 bIsTargetDead:1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		class AActor* Victim;
+
+	FTargetHitInfo()
+	{
+		DamgeCause = 0.f;
+		bIsTargetDead = false;
+		Victim = nullptr;
+	}
+};
+
 /**
  *  Character for Player controlled Character
  */
@@ -108,11 +130,20 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnWeaponUnequipedFinishedSignature OnUnequipWeapon;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+		TSubclassOf<class UBFCharacterWidget> CharacterWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+		TSubclassOf<class UBFCurrentWeaponWidget> CurrenetWeaponWidgetClass;
+
 
 protected:
 	/** whether player is ADS or Aiming we can consider it as aiming */
 	UPROPERTY()
 	uint8 bIsADS:1;
+
+	UPROPERTY()
+	FTargetHitInfo TargetHitInfo;
 
 	/** specify whether this Character is armed */
 	UPROPERTY()
@@ -134,6 +165,11 @@ protected:
 	UPROPERTY()
 	FTimerHandle  EquipWeaponTimerHanle;
 
+	/** Timer Handle for equipping weapon*/
+	UPROPERTY()
+		FTimerHandle  ResetTargetHitInfoTimerHandle;
+
+
 	/** Timer Handle for un_equipping weapon*/
 	UPROPERTY()
 	FTimerHandle  UnequipWeaponTimerHanle;
@@ -153,6 +189,12 @@ protected:
 
 	UPROPERTY()
 	FTransform CameraOriginalRelativeTransform;
+
+	UPROPERTY()
+		UBFCharacterWidget* CharacterWidgetInstance;
+
+	UPROPERTY()
+		UBFCurrentWeaponWidget* CurrentWeaponWidgetInstance;
 
 protected:
 	virtual void BeginPlay()override;
@@ -199,6 +241,9 @@ protected:
 
 	virtual void ToggleAimMode();
 
+	virtual void CreateCharacterWidgetInstance();
+
+	
 	virtual void NotifyItemDetected(ABFInventoryItem* DetectedItem);
 
 	///////////////////////////////////////////
@@ -291,10 +336,19 @@ public:
 
 	   virtual void DetectItem();
 
+	   virtual void InitializeUserWidget();
+
+	   UFUNCTION(BlueprintCallable)
+	   virtual FTargetHitInfo GetTargetHitInfo()const { return TargetHitInfo; }
+
+
 	   virtual void Update1pMeshTransform(const FVector& CameraLocation, const FRotator& CameraRotation);
 
 	   UFUNCTION()
 		   virtual void AimingFOVDelegateCallBack();
+
+	   UFUNCTION()
+		   virtual void ResetTargetHitInfo();
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
 		 virtual FItemTraceDetectResult GetTraceDetectResult()const { return DetectedItemInfo; }
 
@@ -304,4 +358,6 @@ public:
 	virtual EViewMode GetViewMode()const { return ViewMode; }
 
 	virtual FTransform GetCameraOriginalTransform()const { return CameraOriginalRelativeTransform; }
+
+	virtual void ReceiveHitTarget(float DamageAmount, bool IsTargetDead, class ABFBaseCharacter* Victim);
 };

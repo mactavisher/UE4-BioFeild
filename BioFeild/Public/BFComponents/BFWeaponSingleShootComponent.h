@@ -15,6 +15,11 @@ class BIOFEILD_API UBFWeaponSingleShootComponent : public UBFWeaponShootComponen
 {
 	GENERATED_UCLASS_BODY()
 	
+public:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "SingleshootComp", meta = (ClampMin = "0", ClampMax = "0.2"))
+		float SingleShotCoolDownTime;
+
 private:
 	FTimerHandle SingleShotCoolDownHandle;
 

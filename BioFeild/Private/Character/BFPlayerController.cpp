@@ -5,6 +5,8 @@
 #include "Engine/World.h"
 #include "Components/ArrowComponent.h"
 #include "Character/BFPlayerCharacter.h"
+#include "UI/BFUserWidgetBase.h"
+#include "BFComponents/BFInventoryComponent.h"
 #include "Character/BFPlayerCameraManager.h"
 
 ABFPlayerController::ABFPlayerController(const FObjectInitializer& ObjectInitailizer) :Super(ObjectInitailizer)
@@ -23,7 +25,7 @@ ABFPlayerController::ABFPlayerController(const FObjectInitializer& ObjectInitail
 
 void ABFPlayerController::BeginPlay()
 {
-
+	
 }
 
 void ABFPlayerController::Possess(APawn* Pawn)

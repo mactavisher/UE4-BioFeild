@@ -38,4 +38,8 @@ protected:
 	virtual void StopFire()override;
 
 	virtual void ToggleFireMode()override;
+
+	virtual void OnWeaponEquipingFinished()override;
+
+	virtual void OnWeaponUnequipingFinished()override;
 };

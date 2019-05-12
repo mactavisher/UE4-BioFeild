@@ -44,12 +44,11 @@ protected:
 		float LastShootTime;
 
 public:
-	/** recoil value when start recoil */
-	UPROPERTY(BlueprintReadWrite,Category = "Recoil")
+	/** base recoil value when start recoil */
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Recoil")
 		float BaseRecoilValue;
 
 protected:
-
 	/** called in every frame, when in game play , should be turned off to improve game performance when this component currently not needed*/
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 

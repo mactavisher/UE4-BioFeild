@@ -7,6 +7,7 @@ UBFWeaponSingleShootComponent::UBFWeaponSingleShootComponent(const FObjectInitia
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.SetTickFunctionEnable(true);
+	SingleShotCoolDownTime = 0.06f;
 }
 
 void UBFWeaponSingleShootComponent::ShootCoolDown()
@@ -28,11 +29,11 @@ void UBFWeaponSingleShootComponent::SimulateSingleShoot()
 	const float GameCurrentTime = WeaponOwner->GetWorld()->GetTimeSeconds();
 	if (GameCurrentTime-LastFireTime>= WeaponOwner->GetWeaponData().TimeBetweenShots)
 	{
+		bUseRecoil = true;
 		EachSingleShoot();
 		bNeedRestoreWeaponSpread = false;
 		bNeedIncreaseWeaponSpread = true;
-		bUseRecoil = true;
-		GetWorld()->GetTimerManager().SetTimer(SingleShotCoolDownHandle, this, &UBFWeaponSingleShootComponent::ShootCoolDown, 1.0f, false, 0.125f);
+		GetWorld()->GetTimerManager().SetTimer(SingleShotCoolDownHandle, this, &UBFWeaponSingleShootComponent::ShootCoolDown, 1.0f, false, SingleShotCoolDownTime);
 	}
 }
 

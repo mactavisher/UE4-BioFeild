@@ -136,9 +136,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "BFSkeletalMesh")
 		virtual float CalculatePitchOffSet();
 
-	/** receive projectile hit event */
+	/** receive projectile hit event,return is this mesh owner id dead or not */
 	UFUNCTION()
-		virtual void ReceiveProjectileHit(ABFProjectile* Projectile, float DamageAmount, FVector NormalImpulse, const FHitResult HitResult);
+		virtual bool ReceiveProjectileHit(ABFProjectile* Projectile, float DamageAmount, FVector NormalImpulse, const FHitResult HitResult);
 
 	    virtual void BeginPlay()override;
 

@@ -40,13 +40,15 @@ void ABFWeapon_SubMachine::ToggleFireMode()
 	return;
 }
 
-void ABFWeapon_SubMachine::OnWeaponEquiped()
+void ABFWeapon_SubMachine::OnWeaponEquipingFinished()
 {
+	Super::OnWeaponEquipingFinished();
 	BurstShootComp->EnableComponentTick();
 }
 
-void ABFWeapon_SubMachine::OnWeaponUnEquiped()
+void ABFWeapon_SubMachine::OnWeaponUnequipingFinished()
 {
+	Super::OnWeaponUnequipingFinished();
 	BurstShootComp->DisableComponentTick();
 }
 

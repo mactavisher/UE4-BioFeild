@@ -10,11 +10,12 @@ UBFWeaponShootComponentBase::UBFWeaponShootComponentBase(const FObjectInitialize
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.SetTickFunctionEnable(true);
+	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.SetTickFunctionEnable(false);
 	bNeedRestoreWeaponSpread = false;
 	bNeedIncreaseWeaponSpread = false;
 	bUseRecoil = false;
+	BaseRecoilValue = -0.08;
 	// ...
 }
 
@@ -46,6 +47,11 @@ void UBFWeaponShootComponentBase::TickComponent(float DeltaTime, ELevelTick Tick
 		{
 			CurrentRecoilValue = 0.f;
 		}
+#if WITH_EDITOR
+		FString Debugmessage;
+		Debugmessage.Append(TEXT("weapon current recoil value")).Append(FString::SanitizeFloat(CurrentRecoilValue));
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, Debugmessage);
+#endif
 	}
 }
 
@@ -93,6 +99,11 @@ void UBFWeaponShootComponentBase::IncreaseWeaponSpread(float Value)
 				bNeedIncreaseWeaponSpread = false;
 			}
 		}
+//#if WITH_EDITOR
+//		FString Debugmessage;
+//		Debugmessage.Append(TEXT("weapon current spread value is :")).Append(FString::SanitizeFloat(CurrentWeaponSpreadData.CurrentWeaponSpread));
+//		GEngine->AddOnScreenDebugMessage(-1, 0.8f, FColor::Red, Debugmessage);
+//#endif
 	}
 }
 
@@ -112,6 +123,11 @@ void UBFWeaponShootComponentBase::DecreaseWeaponSpread(float Value)
 				bNeedRestoreWeaponSpread = false;
 			}
 		}
+//#if WITH_EDITOR
+//		FString Debugmessage;
+//		Debugmessage.Append(TEXT("weapon current spread value is :")).Append(FString::SanitizeFloat(CurrentWeaponSpreadData.CurrentWeaponSpread));
+//		GEngine->AddOnScreenDebugMessage(-1, 0.8f, FColor::Red, Debugmessage);
+//#endif
 	}
 }
 

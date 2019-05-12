@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "UI/BFUserWidgetBase.h"
 #include "BFInventoryComponent.generated.h"
 
 class ABFWeaponBase;
@@ -46,13 +47,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inventory")
 		TArray<FWeaponSlot> WeaponSlots;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
-		TSubclassOf<UBFUserWidgetBase> InventoryWidget;
-
 private:
 
 	UPROPERTY(VisibleDefaultsOnly,Category ="Inventory")
 		ABFPlayerCharacter* OwnerPlayerCharacter;
+
+	UPROPERTY()
+		UBFUserWidgetBase* InventoryWidgetInstance;
 
 public:
 	virtual uint8 GetWeaponSlotSize() const { return WeaponSlots.Num(); }
@@ -76,6 +77,9 @@ public:
 
 	virtual ABFWeaponBase* GiveDefaultWeapon();
 
+	virtual void SetInventoryWidget(UBFUserWidgetBase* InWidget) { this->InventoryWidgetInstance = InWidget; };
+
+	virtual UBFUserWidgetBase* GetInventoryWidget()const { return InventoryWidgetInstance; };
 
 protected:
 	virtual void BeginPlay()override;

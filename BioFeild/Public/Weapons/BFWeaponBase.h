@@ -33,10 +33,10 @@ class ABFAttachment_Scope;
 /**weapon types can be assigned via blueprints*/
 UENUM(BlueprintType)
 enum class EWeaponType :uint8 {
-	AssaultRifle                                          UMETA(DisplayName = "AssultRifle"),
-	HandGun                                               UMETA(DisplayName = "HandGun"),
-	ShotGun                                               UMETA(DisplayName = "ShotGun"),
-	Sniper                                                UMETA(DisplayName = "Sniper")
+	AssaultRifle                                             UMETA(DisplayName = "AssultRifle"),
+	HandGun                                                UMETA(DisplayName = "HandGun"),
+	ShotGun                                                 UMETA(DisplayName = "ShotGun"),
+	Sniper                                                    UMETA(DisplayName = "Sniper")
 };
 
 UENUM(BlueprintType)
@@ -45,16 +45,16 @@ enum class EWeaponNames :uint8 {
 	SKS                                                     UMETA(DisplayName = "SKS"),
 	ShotGun                                              UMETA(DisplayName = "ShotGun"),
 	SCAR                                                  UMETA(DisplayName = "SCAR"),
-	XM8                                                   UMETA(DisplayName = "XM8"),
-	CLOCK18                                            UMETA(DisplayName = "Clock18"),
-	MP7                                                   UMETA(DisplayName = "MP7")
+	XM8                                                    UMETA(DisplayName = "XM8"),
+	CLOCK18                                             UMETA(DisplayName = "Clock18"),
+	MP7                                                    UMETA(DisplayName = "MP7")
 };
 
 /**weapon types can be assigned via blueprints*/
 UENUM(BlueprintType)
 enum class EFireMode :uint8 {
 	SingleShot                                         UMETA(DisplayName = "SingleShot"),
-	ThreeShot                                          UMETA(DisplayName = "3 contineous Shot"),
+	ThreeShot                                         UMETA(DisplayName = "3 contineous Shot"),
 	BurstShot                                          UMETA(DisplayName = "BurstShot")
 };
 
@@ -83,7 +83,7 @@ struct FWeaponAttachmentSlot {
 
 	GENERATED_USTRUCT_BODY()
 
-		/** attachment slot where this attachment attach to  */
+	/** attachment slot where this attachment attach to  */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AttachmentSlot")
 		FName AttachmentSlotName;
 
@@ -112,6 +112,7 @@ struct FWeaponAttachmentSlot {
 
 USTRUCT(BlueprintType)
 struct FWeaponAnim {
+
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
@@ -172,7 +173,13 @@ struct FWeaponConfigData {
 		int32 AmmoPerClip;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
+		int32 CurrentClipAmmo;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
 		int32 MaxAmmo;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
+		int32 AmmoLeft;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
 		float TimeBetweenShots;
@@ -184,7 +191,9 @@ struct FWeaponConfigData {
 	FWeaponConfigData()
 	{
 		AmmoPerClip = 33;
-		MaxAmmo = 120;
+		CurrentClipAmmo = AmmoPerClip;
+		MaxAmmo = AmmoPerClip*4;
+		AmmoLeft = MaxAmmo;
 		TimeBetweenShots = 0.13f;
 		BaseDamage = 35.f;
 	}
@@ -390,12 +399,6 @@ protected:
 	/** is selected as current weapon */
 	uint8  bIsSelectedCurrent : 1;
 
-	/** current ammo size this clip has  */
-	int32 CurrentClipAmmo;
-
-	/** ammo left in pocket */
-	int32 AmmoLeft;
-
 	/** slot index the weapon hold in */
 	uint8 WeaponSlotIndex;
 
@@ -450,17 +453,16 @@ public:
 
 	virtual void OnWeaponADS();
 
-	virtual void OnWeaponStopADS();
-	/** one shot on each click */
-	//virtual void SingleShot();
+	/** when weapon is not equipped ,hidden this weapon mesh and it's all available attachments  */
+	virtual void HideWeapon();
 
-	/** burst shot with timer set up */
-	//virtual void BurstShotFinished();
+	/** 	/** when weapon is not equipped ,show this weapon  mesh and it's all available attachments  */ 
+	virtual void RenderWeapon();
+
+	virtual void OnWeaponStopADS();
 
 	/** reload weapon */
 	virtual void ReloadWeapon();
-
-	virtual void ReceiveDetected();
 
 	/** finish reload weapon , this should be the place to reload ammo  */
 	virtual void FinishRealoadWeapon();
@@ -493,6 +495,9 @@ public:
 
 	/** check is this weapon ready for firing before call fire function  */
 	virtual bool CheckCanFire();
+
+	/** normally ,reduce 1 ammo each shot */
+	virtual void UseAmmo();
 
 	/** check if this weapon meet the requirements to perform a reload  */
 	virtual bool CheckCanReload();
@@ -547,11 +552,11 @@ public:
 
 	/** return ammo left in pocket  */
 	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
-		virtual int32 GetAmmoLeft()const { return AmmoLeft; }
+		virtual int32 GetAmmoLeft()const { return WeaponConfigData.AmmoLeft; }
 
 	/** return current clip ammo  */
 	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
-		virtual int32 GetCurrentClipAmmo()const { return CurrentClipAmmo; }
+		virtual int32 GetCurrentClipAmmo()const { return WeaponConfigData.CurrentClipAmmo; }
 
 	/** play sound and particle effect when firing  */
 	virtual void PlayFireEffects();
@@ -571,13 +576,10 @@ public:
 		virtual void SetAmmoLeft(const int32 Ammo);
 
 	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
-		virtual int32 GetCurrentAmmo()const { return CurrentClipAmmo; }
-
-	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
 		virtual int32 GetClipAmmoSize()const { return WeaponConfigData.AmmoPerClip; }
 
 	UFUNCTION(BlueprintCallable, Category = "BFWeapon")
-		virtual void SetAmmoPerClip(int32 NewClipSize) { WeaponConfigData.AmmoPerClip = NewClipSize; }
+		virtual void SetCilpAmmoSize(int32 NewClipSize) { WeaponConfigData.AmmoPerClip = NewClipSize; }
 
 	//UFUNCTION(BlueprintCallable, Category = "BFWeapon")
 	//	virtual  float GetBurstShotEscapeTime()const;
@@ -602,31 +604,29 @@ public:
 
 	virtual void SetupAttachments();
 
-	virtual void OnCollect();
-
 	virtual FVector GetADSCameraAdjustVector()const;
 
 	/*******************************************************/
 	/*************receive event from wepon onwer***/
 	/******************************************************/
 
-	virtual void ReceiveReloadFinished();
+	virtual void OnWeaponEquiping();
 
-	virtual void ReceiveReloading();
+	virtual void OnWeaponEquipingFinished();
 
-	virtual void ReceiveEquiping();
+	virtual void OnWeaponUnequiping();
 
-	virtual void ReciveFinishEquiping();
+	virtual void OnWeaponUnequipingFinished();
 
-	virtual void ReceiveUnequiping();
+	virtual void OnWeaponReloading();
+
+	virtual void OnWeaponReloadingFinished();
 
 	virtual void SetIsMenuMode(bool IsInMenuMode);
 
 	virtual bool GetIsInMenuMode()const { return bIsInMenuMode; }
 
 	virtual void ReceiveDetected(class AActor* DetectedBy, class  ABFBaseCharacter* DectectedCharacter, class ABFPlayerController* DectedPlayer)override;
-
-	virtual void NotifyReaction(class AActor* NotifiedActor)override;
 
 	virtual void AdjustCamera();
 
@@ -642,7 +642,5 @@ public:
 
 	virtual void SetCurrentWeaponSpread(float Value) { WeaponSpreadData.CurrentWeaponSpread = Value; }
 
-	virtual void OnWeaponEquiped();
-
-	virtual void OnWeaponUnEquiped();
+	virtual  EWeaponState::Type GetWeaponState()const { return WeaponState; }
 };

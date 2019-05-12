@@ -271,7 +271,6 @@ protected:
 
 
 public:
-
 	virtual void StartDestoryCharacter();
 
 	virtual void FinishDestroyCharacter();
@@ -319,9 +318,7 @@ public:
 		virtual UBFCharacterMovementComponent*  GetBFCharacterMovement()const { return Cast<UBFCharacterMovementComponent>(GetCharacterMovement()); }
 
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
-		virtual UBFSkeletalMeshComponent*  GetBFSkeletalMesh()const {
-		return Cast<UBFSkeletalMeshComponent>(GetMesh());
-	};
+		virtual UBFSkeletalMeshComponent*  GetBFSkeletalMesh()const { return Cast<UBFSkeletalMeshComponent>(GetMesh()); };
 
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
 		virtual UBFHealthComponent* GetHealthComponent()const { return HealthComponent; }

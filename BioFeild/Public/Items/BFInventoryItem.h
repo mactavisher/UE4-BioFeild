@@ -25,7 +25,4 @@ protected:
 public:
 	/** receive detected event if detected */
 	virtual void ReceiveDetected(class AActor* DetectedBy, class  ABFBaseCharacter* DectectedCharacter, class ABFPlayerController* DectedPlayer);
-
-	virtual void NotifyReaction(class AActor* NotifiedActor);
-
 };

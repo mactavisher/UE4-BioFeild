@@ -6,14 +6,17 @@
 #include "Blueprint/UserWidget.h"
 #include "BFUserWidgetBase.generated.h"
 
+class ABFPlayerController;
 /**
  * 
  */
-
 UCLASS()
 class BIOFEILD_API UBFUserWidgetBase : public UUserWidget
 {
-	GENERATED_BODY()
-	
-    
+	GENERATED_UCLASS_BODY()
+
+public:
+	virtual void ShowWidget();
+
+	virtual void HideWidget();
 };

@@ -26,7 +26,7 @@ void UBFWeaponBurstShootComponent::SimulateBurstShoot()
 
 void UBFWeaponBurstShootComponent::EachSingleShoot()
 {
-	if (!WeaponOwner->GetCurrentAmmo() == 0)
+	if (!WeaponOwner->GetCurrentClipAmmo() == 0)
 	{
 		Super::EachSingleShoot();
 	}

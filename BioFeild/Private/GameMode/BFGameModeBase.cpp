@@ -7,32 +7,16 @@
 
 ABFGameModeBase::ABFGameModeBase(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
-	TeamDamageModifier = 0.2f;
+
 }
 
-void ABFGameModeBase::ModifyDamage(float& OutDamage, AController* DamageCauser, AController*DamagedPlayer)
+void ABFGameModeBase::ModifyDamage(float& OutDamage, AController*DamageInstigator, AController*Damaged)
 {
 	/** self damage like gun shot self is not allowed */
-	if (DamagedPlayer == DamageCauser)
+	if (DamageInstigator == Damaged)
 	{
 		OutDamage = 0.f;
 	}
-	/*if (DamageCauser&&DamagedPlayer)
-	{
-		if (DamageCauser->GetClass() == DamagedPlayer->GetClass())
-		{
-			const ABFPlayerController* DamageCauserPlayer = Cast<ABFPlayerController>(DamageCauser);
-			const ABFPlayerController* Damaged = Cast<ABFPlayerController>(DamagedPlayer);
-			if (DamageCauserPlayer->GetTeam() == Damaged->GetTeam())
-			{
-				OutDamage = OutDamage * TeamDamageModifier;
-			}
-		}
-		if (DamageCauser->GetClass()->IsChildOf(ABFPlayerController::StaticClass())&& DamagedPlayer->GetClass()->IsChildOf(ABFZombieController::StaticClass()))
-		{
-			OutDamage = OutDamage;
-		}
-	}*/
 }
 
 

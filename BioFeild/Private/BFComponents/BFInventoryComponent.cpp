@@ -4,7 +4,6 @@
 #include "Weapons/BFWeaponBase.h"
 #include "Character/BFPlayerCharacter.h"
 #include "Engine/World.h"
-#include "Blueprint/UserWidget.h"
 #include "Weapons/BFWeaponBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "BFComponents/BFWeaponMeshComponent.h"

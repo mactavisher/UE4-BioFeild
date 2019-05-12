@@ -58,7 +58,7 @@ enum class ECharacterGender :uint8
 	female
 };
 
-/**2 Type of Character */
+/**2 Type of Team roles*/
 UENUM(BlueprintType)
 enum class ETeam :uint8
 {

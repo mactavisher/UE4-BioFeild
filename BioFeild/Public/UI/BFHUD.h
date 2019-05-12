@@ -60,5 +60,4 @@ public:
 
 	/** hide weapon cross hair */
 	virtual void TurnoffCrossHair();
-
 };

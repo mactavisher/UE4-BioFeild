@@ -173,6 +173,7 @@ void ABFBaseCharacter::HandleDeath()
 	GetBFCharacterMovement()->StopMovementImmediately();
 	CharacterMesh->DeactivateDetectTrace();
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HealthComponent->DisableComponentTick();
 	bIsDead = true;
 	PrimaryActorTick.bCanEverTick = false;
 	StartDestoryCharacter();
