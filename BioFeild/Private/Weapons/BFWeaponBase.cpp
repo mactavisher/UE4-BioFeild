@@ -36,15 +36,14 @@ ABFWeaponBase::ABFWeaponBase(const FObjectInitializer& ObjectInitailizer) :Super
 	RootComponent = WeaponMeshComponent;
 	bShouldPlayFirstEquipedAnim = false;
 	canBePickedUp = false;
-	FireLoudness = 500.0f;
+	bNeedExtraIronSight = false;
+	bNeedExtraScopeHolder = false;
+	FireLoudness = 50.0f;
 	NoiseRadius = 3000.f;
 	WeaponState = EWeaponState::Idle;
 	AimingMode = EAmingMode::Aim;
 	bIsInMenuMode = false;
 	LastFireTime = 0.f;
-	//RecoilPlayerDelegate.BindUFunction(this, "RecoilPlayer");
-	//RecoilTimeLineComp->SetIgnoreTimeDilation(false);
-	//RecoilTimeLineComp = ObjectInitailizer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("RecoilTimeLineComp"));
 }
 
 // Called when the game starts or when spawned
@@ -52,13 +51,13 @@ void ABFWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
 	CreateWeaponWidgetInstances();
-	//RecoilTimeLineComp->AddInterpFloat(RecoilCurve, RecoilPlayerDelegate);
 	ScopeHolderMeshComp->AttachToComponent(WeaponMeshComponent, FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponMeshComponent->ScopeHolderSocket);
 	IronSightMeshComp->AttachToComponent(WeaponMeshComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponMeshComponent->ScopeSocket);
 	SetupAttachments();
 	if (ScopeSlot.AttachmentInstance)
 	{
 		IronSightMeshComp->SetVisibility(false);
+		ScopeHolderMeshComp->SetVisibility(false);
 	}
 	HideWeapon();
 }
@@ -94,23 +93,21 @@ void ABFWeaponBase::StopFire()
 
 void ABFWeaponBase::OnWeaponADS()
 {
-	if (ScopeSlot.AttachmentInstance)
-	{
 
-	}
 }
 
 void ABFWeaponBase::HideWeapon()
 {
 	//hide attached children
 	WeaponMeshComponent->SetVisibility(false);
+	IronSightMeshComp->SetVisibility(false);
 	TArray<USceneComponent*> WeaponAttachmentsMeshs = WeaponMeshComponent->GetAttachChildren();
 	for (int32 i = 0; i < WeaponAttachmentsMeshs.Num() - 1; i++)
 	{
 		WeaponAttachmentsMeshs[i]->SetVisibility(false);
 	}
 
-	//hide attached weapon attachments
+	//hide attached weapon attachments if got any
 	if (ScopeSlot.AttachmentInstance)
 	{
 		ScopeSlot.AttachmentInstance->MeshComp->SetVisibility(false);
@@ -125,15 +122,25 @@ void ABFWeaponBase::RenderWeapon()
 {
 	//Render weapon mesh and it's children
 	WeaponMeshComponent->SetVisibility(true);
+	if (bNeedExtraIronSight)
+	{
+		IronSightMeshComp->SetVisibility(true);
+	}
 	TArray<USceneComponent*> WeaponAttachmentsMeshs = WeaponMeshComponent->GetAttachChildren();
 	for (int32 i = 0; i < WeaponAttachmentsMeshs.Num() - 1; i++)
 	{
 		WeaponAttachmentsMeshs[i]->SetVisibility(true);
 	}
-	//render attached weapon attachments
+	//render attached weapon attachments if got any
 	if (ScopeSlot.AttachmentInstance)
 	{
 		ScopeSlot.AttachmentInstance->MeshComp->SetVisibility(true);
+		ScopeHolderMeshComp->SetVisibility(bNeedExtraScopeHolder);
+		IronSightMeshComp->SetVisibility(bNeedExtraIronSight);
+	}
+	else 
+	{
+		IronSightMeshComp->SetVisibility(bNeedExtraIronSight);
 	}
 	if (SilencerSlot.AttachmentInstance)
 	{
@@ -163,13 +170,23 @@ void ABFWeaponBase::SingleShot()
 		Cast<UBFAnimInstance>(WeaponOwner->CharacterMesh->GetAnimInstance())->bisShooting = true;
 		if (SilencerSlot.AttachmentInstance)
 		{
-			WeaponOwner->MakeNoise(FireLoudness*0.5f, WeaponOwner, WeaponMeshComponent->GetSocketLocation(WeaponMeshComponent->MuzzleFlashSocket), NoiseRadius*0.5f);
+			const ABFAttachment_Silencer* const SilencerInstance = Cast<ABFAttachment_Silencer>(SilencerSlot.AttachmentInstance);
+			const float FireLoudnessModifier = SilencerInstance->GetFireLoudnessModifier();
+			WeaponOwner->MakeNoise(FireLoudness*FireLoudnessModifier, WeaponOwner, WeaponMeshComponent->GetSocketLocation(WeaponMeshComponent->MuzzleFlashSocket), NoiseRadius*FireLoudnessModifier);
 		}
-		WeaponOwner->MakeNoise(FireLoudness, WeaponOwner, WeaponMeshComponent->GetSocketLocation(WeaponMeshComponent->MuzzleFlashSocket), NoiseRadius);
+		else
+		{
+			WeaponOwner->MakeNoise(FireLoudness, WeaponOwner, WeaponMeshComponent->GetSocketLocation(WeaponMeshComponent->MuzzleFlashSocket), NoiseRadius);
+		}
+
 		WeaponMeshComponent->PlayAnimation(WeaponGunAnim.FireAnim, false);
 		PlayFireEffects();
 		EjectShell();
 		UseAmmo();
+		if (CheckCanReload() && WeaponConfigData.CurrentClipAmmo == 0)
+		{
+			ReloadWeapon();
+		}
 	}
 }
 
@@ -177,6 +194,7 @@ void ABFWeaponBase::ReloadWeapon()
 {
 	if (CheckCanReload())
 	{
+
 		UAnimMontage* ReloadAnim = nullptr;
 		if (WeaponOwner->GetViewMode() == EViewMode::FPS)
 		{
@@ -226,6 +244,26 @@ void ABFWeaponBase::ResetAdjustedCamera()
 		//	UCameraComponent* const CharacterCamera = WeaponOwner->CameraComp;
 		//}
 	}
+}
+
+void ABFWeaponBase::EquipScope(ABFAttachment_Scope* ScopeToEquip)
+{
+
+}
+
+void ABFWeaponBase::UnequipScope()
+{
+
+}
+
+void ABFWeaponBase::EquipSilencer(ABFAttachment_Silencer*SilencerToEquip)
+{
+
+}
+
+void ABFWeaponBase::UnEquipSilencer()
+{
+
 }
 
 void ABFWeaponBase::FinishRealoadWeapon()
@@ -440,12 +478,20 @@ void ABFWeaponBase::SetWeaponOwner(ABFPlayerCharacter* NewOwner)
 
 void ABFWeaponBase::PlayFireEffects()
 {
-	USoundCue* FireSoundToPlay = SilencerSlot.AttachmentInstance == nullptr ? FireSound : Cast<ABFAttachment_Silencer>(SilencerSlot.AttachmentInstance)->GetSilencerFireSound();
+	USoundCue* FireSoundToPlay = SilencerSlot.AttachmentInstance == nullptr ? FireSound : SilencedFireSound;
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), FireSoundToPlay, WeaponMeshComponent->GetSocketLocation(WeaponMeshComponent->MuzzleFlashSocket));
 	if (MuzzleFlash)
 	{
-		const FName MuzzleFlashSocket = WeaponMeshComponent->MuzzleFlashSocket;
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, WeaponMeshComponent->GetSocketTransform(MuzzleFlashSocket), true);
+		const ABFAttachment_Silencer* SilencerInstance = Cast<ABFAttachment_Silencer>(SilencerSlot.AttachmentInstance);
+		if (SilencerInstance)
+		{
+			const FName MuzzleFlashSocket = SilencerInstance->GetMuzzleFlashSocket();
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SilencerInstance->MeshComp->GetSocketTransform(MuzzleFlashSocket), true);
+		}
+		else {
+			const FName MuzzleFlashSocket = WeaponMeshComponent->MuzzleFlashSocket;
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, WeaponMeshComponent->GetSocketTransform(MuzzleFlashSocket), true);
+		}
 	}
 	if (CameraShakeClass)
 	{
@@ -487,11 +533,14 @@ void ABFWeaponBase::SetupAttachments()
 		if (ScopeSlot.AttachmentInstance)
 		{
 			ScopeSlot.AttachmentInstance->SetWeaponOwner(this);
-			if (ScopeHolderMeshComp->GetSocketByName("ScopePoint"))
+			//if this mesh need a extra scope holder to attach scope, then attach to the scope holder
+			if (bNeedExtraScopeHolder)
 			{
 				ScopeSlot.AttachmentInstance->AttachToComponent(ScopeHolderMeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, "ScopePoint");
 			}
-			else {
+			//if scope holder not needed ,then attach to the weapon mesh it self
+			else 
+			{
 				ScopeSlot.AttachmentInstance->AttachToComponent(WeaponMeshComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponMeshComponent->ScopeSocket);
 			}
 			ScopeSlot.bisOccupied = true;
@@ -499,9 +548,13 @@ void ABFWeaponBase::SetupAttachments()
 	}
 	if (SilencerSlot.AttachmentClass&&SilencerSlot.bisAvailable && !SilencerSlot.bisOccupied)
 	{
-		SilencerSlot.AttachmentInstance = GetWorld()->SpawnActorDeferred<ABFAttachment_Silencer>(ScopeSlot.AttachmentClass, GetActorTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
-		ScopeSlot.AttachmentInstance->AttachToComponent(WeaponMeshComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
-		ScopeSlot.bisOccupied = true;
+		SilencerSlot.AttachmentInstance = GetWorld()->SpawnActorDeferred<ABFAttachment_Silencer>(SilencerSlot.AttachmentClass, GetActorTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		if (SilencerSlot.AttachmentInstance)
+		{
+			SilencerSlot.AttachmentInstance->SetWeaponOwner(this);
+			SilencerSlot.AttachmentInstance->AttachToComponent(WeaponMeshComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponMeshComponent->MuzzleFlashSocket);
+			SilencerSlot.bisOccupied = true;
+		}
 	}
 }
 
@@ -519,10 +572,10 @@ void ABFWeaponBase::OnWeaponEquiping()
 
 void ABFWeaponBase::OnWeaponEquipingFinished()
 {
-
+	SetIsSelectedAsCurrent(true);
 }
 
-void ABFWeaponBase::OnWeaponUnequiping()
+void ABFWeaponBase::OnWeaponUnEquiping()
 {
 
 }
@@ -531,15 +584,26 @@ void ABFWeaponBase::OnWeaponUnequipingFinished()
 {
 	WeaponOwner->InventoryComponent->WeaponSlots[GetWeaponSlotIndex()].SlotWeapon = this;//put the weapon back to inventory
 	WeaponOwner->InventoryComponent->WeaponSlots[GetWeaponSlotIndex()].bIsSlotOccupied = true;
+	SetIsSelectedAsCurrent(false);
 	HideWeapon();
 }
 
 void ABFWeaponBase::OnWeaponReloading()
 {
-	  
+
 }
 
 void ABFWeaponBase::OnWeaponReloadingFinished()
+{
+
+}
+
+void ABFWeaponBase::OnScopeEquipped()
+{
+
+}
+
+void ABFWeaponBase::OnSilencerEqupped()
 {
 
 }

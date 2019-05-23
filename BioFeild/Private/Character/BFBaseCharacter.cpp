@@ -18,6 +18,8 @@ ABFBaseCharacter::ABFBaseCharacter(const FObjectInitializer& ObjectInitializer) 
 	PrimaryActorTick.bCanEverTick = false;
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UBFHealthComponent>(this, TEXT("HealthComp"));
 	CharacterVoiceComponent = ObjectInitializer.CreateDefaultSubobject<UBFCharacterAudioComponent>(this, TEXT("AudioComp"));
+	CharacterVoiceComponent->SetupAttachment(CharacterMesh);
+	CharacterVoiceComponent->AddRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight));
 	CharacterBillBoardComp = ObjectInitializer.CreateDefaultSubobject<UBillboardComponent>(this, TEXT("BillBordComp"));
 }
 
@@ -79,7 +81,7 @@ void ABFBaseCharacter::StopSprint_Implementation()
 	UBFCharacterMovementComponent* CharacterMovement = GetBFCharacterMovement();
 	if (CharacterMovement)
 	{
-		Cast<UBFAnimInstance>(GetMesh()->GetAnimInstance())->bCanSprint = false;
+		Cast<UBFAnimInstance>(GetMesh()->GetAnimInstance())->bIsSprinting = false;
 		bIsSprint = false;
 		CharacterMovement->SetDefaultMaxWalkSpeed();
 		CharacterHeartBeatData.bShouldRestoreHeartBeatRate = true;
@@ -94,7 +96,7 @@ void ABFBaseCharacter::Sprint_Implementation()
 		UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
 		if (CharacterMovement)
 		{
-			Cast<UBFAnimInstance>(GetMesh()->GetAnimInstance())->bCanSprint = true;
+			Cast<UBFAnimInstance>(GetMesh()->GetAnimInstance())->bIsSprinting = true;
 			bIsSprint = true;
 			CharacterMovement->SetSprintSpeed();
 			CharacterHeartBeatData.bShouldRestoreHeartBeatRate = false;

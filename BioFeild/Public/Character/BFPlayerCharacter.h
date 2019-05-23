@@ -35,13 +35,13 @@ enum class EViewMode :uint8
 	TPS,
 	FPS
 };
+
 USTRUCT(BlueprintType)
 struct FItemTraceDetectResult {
-
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		uint8 bHitSomething:1;
+		uint8 bHitSomething : 1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		uint8 bHitInventoryItem : 1;
@@ -53,7 +53,7 @@ struct FItemTraceDetectResult {
 		class ABFInventoryItem* HitItem;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		uint8  bIsThreat:1;
+		uint8  bIsThreat : 1;
 
 	FItemTraceDetectResult()
 	{
@@ -74,7 +74,7 @@ struct FTargetHitInfo {
 		float DamgeCause;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		uint8 bIsTargetDead:1;
+		uint8 bIsTargetDead : 1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		class AActor* Victim;
@@ -97,7 +97,7 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 {
 	GENERATED_UCLASS_BODY()
 
-	/*create camera component for player*/
+		/*create camera component for player*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		UCameraComponent*  CameraComp;
 
@@ -140,30 +140,30 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 protected:
 	/** whether player is ADS or Aiming we can consider it as aiming */
 	UPROPERTY()
-	uint8 bIsADS:1;
+		uint8 bIsADS : 1;
 
 	UPROPERTY()
-	FTargetHitInfo TargetHitInfo;
+		FTargetHitInfo TargetHitInfo;
 
 	/** specify whether this Character is armed */
 	UPROPERTY()
-	uint8 bIsArmed:1;
+		uint8 bIsArmed : 1;
 
 	/** indicate that character wants to swap weapon */
 	UPROPERTY()
-	uint8 bWantsToSwapWeapon:1;
+		uint8 bWantsToSwapWeapon : 1;
 
 	/** CurrentWeapon the player equipped */
 	UPROPERTY()
-	ABFWeaponBase* CurrentWeapon;
+		ABFWeaponBase* CurrentWeapon;
 
 	/** weapon going to equipped by this character */
 	UPROPERTY()
-	ABFWeaponBase* WeaponToEquip;
+		ABFWeaponBase* WeaponToEquip;
 
 	/** Timer Handle for equipping weapon*/
 	UPROPERTY()
-	FTimerHandle  EquipWeaponTimerHanle;
+		FTimerHandle  EquipWeaponTimerHanle;
 
 	/** Timer Handle for equipping weapon*/
 	UPROPERTY()
@@ -172,23 +172,23 @@ protected:
 
 	/** Timer Handle for un_equipping weapon*/
 	UPROPERTY()
-	FTimerHandle  UnequipWeaponTimerHanle;
+		FTimerHandle  UnequipWeaponTimerHanle;
 
 	/** Player controller controls this Character */
 	UPROPERTY()
-	ABFPlayerController* PlayerController;
+		ABFPlayerController* PlayerController;
 
 	/** what is the character currently doing with weapons  */
 	ECharacterWeaponAction::Type CharacterActionType;
 
 	/** cached animation instance */
 	UPROPERTY()
-	UBFAnimInstance* CurrentAnimInstance;
+		UBFAnimInstance* CurrentAnimInstance;
 
 	FOnTimelineFloat AimingFOVTimelineDelegate;
 
 	UPROPERTY()
-	FTransform CameraOriginalRelativeTransform;
+		FTransform CameraOriginalRelativeTransform;
 
 	UPROPERTY()
 		UBFCharacterWidget* CharacterWidgetInstance;
@@ -243,7 +243,6 @@ protected:
 
 	virtual void CreateCharacterWidgetInstance();
 
-	
 	virtual void NotifyItemDetected(ABFInventoryItem* DetectedItem);
 
 	///////////////////////////////////////////
@@ -262,18 +261,13 @@ protected:
 	/** specify to equip the slot4 weapon */
 	virtual void EquipSlot4Weapon();
 
-    /** if character is currently not equipped ,then searching for inventory and auto pick the first one reachable weapon  for character to equip */
+	/** if character is currently not equipped ,then searching for inventory and auto pick the first one reachable weapon  for character to equip */
 	virtual void EquipDefault();
 
 	/** Delegate bound function for unequipped weapon event  fired */
 	UFUNCTION()
-	virtual void OnWeaponUnequiped();
+		virtual void OnWeaponUnequiped();
 
-	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
-		void ADS();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
-		void StopADS();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Action")
 		void FireWeapon();
@@ -283,13 +277,11 @@ protected:
 
 
 public:
-	/** let Anim_BP knows that character is just armed,want to update animation  */
-	UFUNCTION(BlueprintNativeEvent, Category = "BFCharacter")
-		void OnCharacterArmed();
+	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
+		void ADS();
 
-	/** let Anim_BP knows that character is just unarmed,want to update animation  */
-	UFUNCTION(BlueprintNativeEvent, Category = "BFCharacter")
-		void OnCharacterUnArmed();
+	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
+		void StopADS();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "BFCharacter")
 		virtual bool GetCharacterIsArmed()const { return bIsArmed; }
@@ -334,23 +326,23 @@ public:
 	UFUNCTION()
 		virtual void FixedStyleCamera();
 
-	   virtual void DetectItem();
+	virtual void DetectItem();
 
-	   virtual void InitializeUserWidget();
+	virtual void InitializeUserWidget();
 
-	   UFUNCTION(BlueprintCallable)
-	   virtual FTargetHitInfo GetTargetHitInfo()const { return TargetHitInfo; }
+	UFUNCTION(BlueprintCallable)
+	virtual FTargetHitInfo GetTargetHitInfo()const { return TargetHitInfo; }
 
+	virtual void Update1pMeshTransform(const FVector& CameraLocation, const FRotator& CameraRotation);
 
-	   virtual void Update1pMeshTransform(const FVector& CameraLocation, const FRotator& CameraRotation);
+	UFUNCTION()
+	virtual void AimingFOVDelegateCallBack();
 
-	   UFUNCTION()
-		   virtual void AimingFOVDelegateCallBack();
+	UFUNCTION()
+	virtual void ResetTargetHitInfo();
 
-	   UFUNCTION()
-		   virtual void ResetTargetHitInfo();
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
-		 virtual FItemTraceDetectResult GetTraceDetectResult()const { return DetectedItemInfo; }
+	virtual FItemTraceDetectResult GetTraceDetectResult()const { return DetectedItemInfo; }
 
 	virtual UBFSkeletalMeshComponent* GetMesh3p()const { return Mesh3PComp; }
 
@@ -360,4 +352,10 @@ public:
 	virtual FTransform GetCameraOriginalTransform()const { return CameraOriginalRelativeTransform; }
 
 	virtual void ReceiveHitTarget(float DamageAmount, bool IsTargetDead, class ABFBaseCharacter* Victim);
+
+	/** stop player current playing montage */
+	virtual void  StopCurrentPlayingMontage();
+
+	/** equip specific weapon by weapon slot index,if value equals 255 which is uint8's max value,means we want to equip default weapon */
+	virtual void EquipSlotWeapon(uint8 WeaponSlotIndex);
 };

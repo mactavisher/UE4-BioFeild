@@ -26,10 +26,4 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Sockets")
 		FName ScopeHolderSocket;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Sockets")
-		FName CameraSocket ;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Sockets")
-		FName ScenceCaptrueSocket;
 };

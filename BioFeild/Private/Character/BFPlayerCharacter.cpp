@@ -62,9 +62,9 @@ void ABFPlayerCharacter::BeginPlay()
 	//add rotation to make 1p mesh look forward
 	CharacterMesh->AddRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	//add relative location to match 3p mesh bone location for later use purpose
-	CharacterMesh->AddRelativeLocation(FVector(18.f,0.f,-150.f));
+	CharacterMesh->AddRelativeLocation(FVector(18.f, 0.f, -150.f));
 	// adjust camera location to match weapon action such as ADS,this should be a valuable get from from weapon property
-	CameraComp->AddRelativeLocation(FVector(-5.f,0.f,20.25f));
+	CameraComp->AddRelativeLocation(FVector(5.f, 0.f, 20.25f));
 	CreateCharacterWidgetInstance();
 }
 
@@ -104,8 +104,8 @@ void ABFPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABFPlayerCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABFPlayerCharacter::MoveForward);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ABFPlayerCharacter::Jump);
-	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ABFPlayerCharacter::Sprint);
-	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ABFPlayerCharacter::StopSprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ABFBaseCharacter::Sprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ABFBaseCharacter::StopSprint);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABFPlayerCharacter::FireWeapon);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ABFPlayerCharacter::StopFireWeapon);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ABFPlayerCharacter::AimingDispacher);
@@ -151,12 +151,10 @@ void ABFPlayerCharacter::EquipWeapon()
 
 void ABFPlayerCharacter::FinishEquipWeapon()
 {
-	bIsArmed = true;
-	WeaponToEquip = nullptr;
+	CurrentWeapon->OnWeaponEquipingFinished();
 	CharacterActionType = ECharacterWeaponAction::Idle;
 	bWantsToSwapWeapon = false;
-	CurrentWeapon->OnWeaponEquipingFinished();
-	OnCharacterArmed();
+
 }
 
 void ABFPlayerCharacter::UnEquipWeapon()
@@ -166,8 +164,8 @@ void ABFPlayerCharacter::UnEquipWeapon()
 		UAnimMontage* UnEquipMontage = nullptr;
 		float Duration = 0.5f;
 		CurrentAnimInstance->bIsArmed = false;
-		CurrentWeapon->OnWeaponEquiping();
-	    UnEquipMontage = CurrentWeapon->GetWeaponAnim_FPS().UnEquipAnim;
+		CurrentWeapon->OnWeaponUnEquiping();
+		UnEquipMontage = CurrentWeapon->GetWeaponAnim_FPS().UnEquipAnim;
 		Duration = PlayAnimMontage(UnEquipMontage, 1.0f, NAME_None);
 		GetWorldTimerManager().SetTimer(UnequipWeaponTimerHanle, this, &ABFPlayerCharacter::FinishUnEquipWeapon, 1.0f, false, Duration);
 		CharacterActionType = ECharacterWeaponAction::UnEquiping;
@@ -180,7 +178,6 @@ void ABFPlayerCharacter::FinishUnEquipWeapon()
 	CurrentWeapon = nullptr;
 	bIsArmed = false;
 	CharacterActionType = ECharacterWeaponAction::Idle;
-	OnCharacterUnArmed();
 	OnUnequipWeapon.Broadcast();
 	if (bWantsToSwapWeapon&&WeaponToEquip)
 	{
@@ -250,7 +247,6 @@ void ABFPlayerCharacter::DropCurrentWeapon()
 		CurrentWeapon->SetWeaponOwner(nullptr);
 		CurrentWeapon->HandleDroped();
 		InventoryComponent->RemoveSlotWeapon(CurrentWeapon->GetWeaponSlotIndex());
-		OnCharacterUnArmed();//activate this event
 	}
 }
 
@@ -307,84 +303,32 @@ void ABFPlayerCharacter::CreateCharacterWidgetInstance()
 
 void ABFPlayerCharacter::NotifyItemDetected(ABFInventoryItem* DetectedItem)
 {
-	
+
 }
 
 void ABFPlayerCharacter::EquipSlot1Weapon()
 {
-	WeaponToEquip = InventoryComponent->GiveSlotWeapon(0);
-	if (CurrentWeapon&&CurrentWeapon != WeaponToEquip)
-	{
-		StopAnimMontage(CurrentWeapon->GetWeaponAnim().ReloadAnim);
-		UnEquipWeapon();
-		bWantsToSwapWeapon = true;
-	}
-	if (!CurrentWeapon)
-	{
-		EquipWeapon();
-	}
+	EquipSlotWeapon(0);
 }
 
 void ABFPlayerCharacter::EquipSlot2Weapon()
 {
-	WeaponToEquip = InventoryComponent->GiveSlotWeapon(1);
-	if (CurrentWeapon&&CurrentWeapon != WeaponToEquip)
-	{
-		StopAnimMontage(CurrentWeapon->GetWeaponAnim().ReloadAnim);
-		UnEquipWeapon();
-		bWantsToSwapWeapon = true;
-	}
-	if (!CurrentWeapon)
-	{
-		EquipWeapon();
-	}
+	EquipSlotWeapon(1);
 }
 
 void ABFPlayerCharacter::EquipSlot3Weapon()
 {
-	WeaponToEquip = InventoryComponent->GiveSlotWeapon(2);
-	if (CurrentWeapon&&CurrentWeapon != WeaponToEquip)
-	{
-		StopAnimMontage(CurrentWeapon->GetWeaponAnim().ReloadAnim);
-		UnEquipWeapon();
-		bWantsToSwapWeapon = true;
-	}
-	if (!CurrentWeapon)
-	{
-		EquipWeapon();
-	}
+	EquipSlotWeapon(2);
 }
 
 void ABFPlayerCharacter::EquipSlot4Weapon()
 {
-	StopAnimMontage(CurrentWeapon->GetWeaponAnim().ReloadAnim);
-	WeaponToEquip = InventoryComponent->GiveSlotWeapon(3);
-	if (CurrentWeapon&&CurrentWeapon != WeaponToEquip)
-	{
-		UnEquipWeapon();
-		bWantsToSwapWeapon = true;
-	}
-	if (!CurrentWeapon)
-	{
-		EquipWeapon();
-	}
+	EquipSlotWeapon(3);
 }
 
 void ABFPlayerCharacter::EquipDefault()
 {
-	if (CurrentWeapon)
-	{
-		StopAnimMontage(CurrentWeapon->GetWeaponAnim().ReloadAnim);
-		return;
-	}
-	if (InventoryComponent)
-	{
-		WeaponToEquip = InventoryComponent->GiveDefaultWeapon();
-		if (WeaponToEquip)
-		{
-			EquipWeapon();
-		}
-	}
+	EquipSlotWeapon(255);
 }
 
 void ABFPlayerCharacter::OnWeaponUnequiped()
@@ -393,19 +337,6 @@ void ABFPlayerCharacter::OnWeaponUnequiped()
 	{
 		EquipWeapon();
 	}
-}
-
-void ABFPlayerCharacter::OnCharacterArmed_Implementation()
-{
-	if (CurrentWeapon)
-	{
-		CurrentWeapon->SetIsSelectedAsCurrent(true);
-	}
-}
-
-void ABFPlayerCharacter::OnCharacterUnArmed_Implementation()
-{
-
 }
 
 void ABFPlayerCharacter::SetPlayerController(ABFPlayerController* NewController)
@@ -450,7 +381,7 @@ void ABFPlayerCharacter::DetectItem()
 	{
 		DetectedItemInfo.bHitSomething = true;
 		DetectedItemInfo.HitActor = TraceHit.GetActor();
-		if (TraceHit.Actor!= nullptr)
+		if (TraceHit.Actor != nullptr)
 		{
 			DetectedItemInfo.bHitSomething = true;
 			if (TraceHit.Actor->GetClass()->IsChildOf(ABFZombie::StaticClass()))
@@ -508,7 +439,43 @@ void ABFPlayerCharacter::ReceiveHitTarget(float DamageAmount, bool VictimDead, c
 	TargetHitInfo.bIsTargetDead = VictimDead;
 	TargetHitInfo.DamgeCause = DamageAmount;
 	Victim = Victim;
-	GetWorldTimerManager().SetTimer(ResetTargetHitInfoTimerHandle,this, &ABFPlayerCharacter::ResetTargetHitInfo,1.0f, false,0.15f);
+	GetWorldTimerManager().SetTimer(ResetTargetHitInfoTimerHandle, this, &ABFPlayerCharacter::ResetTargetHitInfo, 1.0f, false, 0.15f);
+}
+
+void ABFPlayerCharacter::StopCurrentPlayingMontage()
+{
+	//from the source code we know ,if montage is null ,then it will stop all the montages which is not what we want
+	const UAnimMontage* CurrentPlayingMontage = CurrentAnimInstance->GetCurrentActiveMontage();
+	if (CurrentPlayingMontage)
+	{
+		CurrentAnimInstance->Montage_Stop(0.1f, CurrentPlayingMontage);
+	}
+}
+
+void ABFPlayerCharacter::EquipSlotWeapon(uint8 WeaponSlotIndex)
+{
+	if (WeaponSlotIndex == 255)
+	{
+		WeaponToEquip = InventoryComponent->GiveDefaultWeapon();
+	}
+	else if (WeaponSlotIndex != 255)
+	{
+		WeaponToEquip = InventoryComponent->GiveSlotWeapon(WeaponSlotIndex);
+	}
+	if (!CurrentWeapon)
+	{
+		EquipWeapon();
+	}
+	else if (CurrentWeapon&&CurrentWeapon->GetWeaponSlotIndex() == WeaponSlotIndex)
+	{
+		UnEquipWeapon();
+		bWantsToSwapWeapon = false;
+	}
+	else if (CurrentWeapon&&CurrentWeapon->GetWeaponSlotIndex() != WeaponSlotIndex)
+	{
+		UnEquipWeapon();
+		bWantsToSwapWeapon = true;
+	}
 }
 
 void ABFPlayerCharacter::Update1pMeshTransform(const FVector& CameraLocation, const FRotator& CameraRotation)
@@ -546,7 +513,7 @@ void ABFPlayerCharacter::StopFireWeapon_Implementation()
 {
 	if (CurrentWeapon)
 	{
-	//	CurrentWeapon->BurstShotFinished();
+		//	CurrentWeapon->BurstShotFinished();
 		CurrentWeapon->StopFire();
 	}
 }
@@ -590,36 +557,36 @@ void ABFPlayerCharacter::StopADS_Implementation()
 
 void ABFPlayerCharacter::ADS_Implementation()
 {
-		if (CurrentWeapon)
+	if (CurrentWeapon)
+	{
+		bUseControllerRotationYaw = true;
+		ABFAttachment_Scope* CurrentScope = Cast<ABFAttachment_Scope>(CurrentWeapon->ScopeSlot.AttachmentInstance);
+		if (CurrentScope)
 		{
-			bUseControllerRotationYaw = true;
-			ABFAttachment_Scope* CurrentScope = Cast<ABFAttachment_Scope>(CurrentWeapon->ScopeSlot.AttachmentInstance);
-			if (CurrentScope)
-			{
-				CurrentScope->OnADS();
-			}
-			CharacterMesh->GetCurrentAnimInstance()->bisADS = true;
-			UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
-			CurrentWeapon->AdjustCamera();
-			const FVector ADSAdjustVector = CurrentWeapon->GetADSCameraAdjustVector();
-			CameraComp->AddRelativeLocation(ADSAdjustVector);
-			if (CharacterMovement)
-			{
-				bIsADS = true;
-				if (bIsCrouched)
-				{
-					const float AimingSpeedModifier = CharacterMovement->AimingSpeedModifier;
-					const float CrouchSpeedModifier = CharacterMovement->CrouchSpeedModifier;
-					CharacterMovement->MaxWalkSpeed = CharacterMovement->GetDefaultMaxWalkSpeed()*(AimingSpeedModifier + CrouchSpeedModifier)*0.5f;
-				}
-				CharacterMovement->SetAimingSpeed();
-			}
-			if (AimingFOVTimeLineComponent)
-			{
-				AimingFOVTimeLineComponent->AddInterpFloat(AimingFOVCurve, AimingFOVTimelineDelegate);
-				AimingFOVTimeLineComponent->Play();
-			}
+			CurrentScope->OnADS();
 		}
+		CharacterMesh->GetCurrentAnimInstance()->bisADS = true;
+		UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
+		CurrentWeapon->AdjustCamera();
+		const FVector ADSAdjustVector = CurrentWeapon->GetADSCameraAdjustVector();
+		CameraComp->AddRelativeLocation(ADSAdjustVector);
+		if (CharacterMovement)
+		{
+			bIsADS = true;
+			if (bIsCrouched)
+			{
+				const float AimingSpeedModifier = CharacterMovement->AimingSpeedModifier;
+				const float CrouchSpeedModifier = CharacterMovement->CrouchSpeedModifier;
+				CharacterMovement->MaxWalkSpeed = CharacterMovement->GetDefaultMaxWalkSpeed()*(AimingSpeedModifier + CrouchSpeedModifier)*0.5f;
+			}
+			CharacterMovement->SetAimingSpeed();
+		}
+		if (AimingFOVTimeLineComponent)
+		{
+			AimingFOVTimeLineComponent->AddInterpFloat(AimingFOVCurve, AimingFOVTimelineDelegate);
+			AimingFOVTimeLineComponent->Play();
+		}
+	}
 }
 
 void ABFPlayerCharacter::MoveRight(float Value)
@@ -649,14 +616,12 @@ void ABFPlayerCharacter::MoveForward(float Value)
 void ABFPlayerCharacter::Jump()
 {
 	Super::Jump();
-	UBFAnimInstance* AnimInstance = Cast<UBFAnimInstance>(GetBFSkeletalMesh()->GetAnimInstance());
-	AnimInstance->bCanJump = true;
+	CurrentAnimInstance->bCanJump = true;
 }
 
 void ABFPlayerCharacter::StopJumping()
 {
-	UBFAnimInstance* AnimInstance = Cast<UBFAnimInstance>(GetBFSkeletalMesh()->GetAnimInstance());
-	AnimInstance->bCanJump = false;
+	CurrentAnimInstance->bCanJump = false;
 	Super::StopJumping();
 }
 

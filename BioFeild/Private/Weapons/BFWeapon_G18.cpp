@@ -4,14 +4,16 @@
 
 ABFWeapon_G18::ABFWeapon_G18(const FObjectInitializer& ObjectInitailizer) :Super(ObjectInitailizer)
 {
-	//set default values for G_18
-	WeaponConfigData.AmmoPerClip = 13;
-	WeaponConfigData.BaseDamage = 28.f;
-	WeaponConfigData.MaxAmmo = 52;
-	WeaponConfigData.TimeBetweenShots = 0.12f;
 	PrimaryActorTick.bCanEverTick = false;
 	PrimaryActorTick.SetTickFunctionEnable(false);
 	WeaponName = EWeaponNames::CLOCK18;
+	WeaponConfigData.TimeBetweenShots = 0.15f;
+	WeaponConfigData.AmmoPerClip = 14;
+	WeaponConfigData.CurrentClipAmmo = WeaponConfigData.AmmoPerClip;
+	WeaponConfigData.BaseDamage = 28.38f;
+	WeaponConfigData.MaxAmmo = WeaponConfigData.AmmoPerClip * 4;
+	WeaponConfigData.AmmoLeft = WeaponConfigData.MaxAmmo;
+	bNeedExtraScopeHolder = false;
 }
 
 
@@ -49,6 +51,10 @@ void ABFWeapon_G18::ToggleFireMode()
 
 FVector ABFWeapon_G18::GetADSCameraAdjustVector() const
 {
+	if (ScopeSlot.AttachmentInstance)
+	{
+		return FVector(25.f,0.f,-1.25f);
+	}
 	return FVector(25.f, 0, -5.25f);
 }
 

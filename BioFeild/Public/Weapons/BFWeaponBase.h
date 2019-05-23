@@ -29,6 +29,7 @@ class ABFEmptyMagazine;
 class ABFBulletShell;
 class UUserWidget;
 class ABFAttachment_Scope;
+class ABFAttachment_Silencer;
 
 /**weapon types can be assigned via blueprints*/
 UENUM(BlueprintType)
@@ -186,17 +187,6 @@ struct FWeaponConfigData {
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
 		float BaseDamage;
-
-	/** default value */
-	FWeaponConfigData()
-	{
-		AmmoPerClip = 33;
-		CurrentClipAmmo = AmmoPerClip;
-		MaxAmmo = AmmoPerClip*4;
-		AmmoLeft = MaxAmmo;
-		TimeBetweenShots = 0.13f;
-		BaseDamage = 35.f;
-	}
 };
 
 USTRUCT(BlueprintType)
@@ -218,16 +208,6 @@ struct FWeaponSpreadData
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BFWeapon")
 		float CurrentWeaponSpread;
-
-	/**  defaults value  */
-	FWeaponSpreadData()
-	{
-		WeaponSpreadBase = 0.f;
-		WeaponSpreadIncrement = 1.f;
-		WeaponDecressment = 2.f;
-		WeaponSpreadMax = 10.f;
-		CurrentWeaponSpread = 0.f;
-	}
 };
 
 /**
@@ -238,6 +218,7 @@ class BIOFEILD_API ABFWeaponBase : public ABFInventoryItem
 {
 	GENERATED_UCLASS_BODY()
 
+public:
 		/** create  weapon mesh component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WeponMesh", meta = (AllowPrivateAccess = "true"))
 		UBFWeaponMeshComponent*  WeaponMeshComponent;
@@ -273,6 +254,10 @@ class BIOFEILD_API ABFWeaponBase : public ABFInventoryItem
 	/** fire sound each time weapon fires */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Effects|Sound")
 		USoundCue* FireSound;
+
+	/** fire sound each time weapon fires */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Effects|Sound")
+		USoundCue* SilencedFireSound;
 
 	/** dry sound when weapon got no ammo left */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Effects|Sound")
@@ -360,7 +345,7 @@ class BIOFEILD_API ABFWeaponBase : public ABFInventoryItem
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 		UTexture2D* WeaponInfoWidgetClassTexture;
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "UI")
 		UTexture2D* WeaponIcon;
 
 	/** widget to show when hit target as a feed back ui */
@@ -399,6 +384,12 @@ protected:
 	/** is selected as current weapon */
 	uint8  bIsSelectedCurrent : 1;
 
+	/** b need a extra iron sight */
+	uint8 bNeedExtraIronSight : 1;
+
+	/** b need a extra iron sight */
+	uint8 bNeedExtraScopeHolder : 1;
+
 	/** slot index the weapon hold in */
 	uint8 WeaponSlotIndex;
 
@@ -416,10 +407,6 @@ protected:
 
 	/** timer for destroy self after dropped or spawned but not picked up  */
 	FTimerHandle DestroySelfTimerHandle;
-
-	//FOnTimelineFloat RecoilPlayerDelegate;
-
-	//FOnTimelineEventStatic RecoilFinishedDelegate;
 
 	/** is this weapon ready for players to picked up  */
 	bool canBePickedUp;
@@ -614,13 +601,17 @@ public:
 
 	virtual void OnWeaponEquipingFinished();
 
-	virtual void OnWeaponUnequiping();
+	virtual void OnWeaponUnEquiping();
 
 	virtual void OnWeaponUnequipingFinished();
 
 	virtual void OnWeaponReloading();
 
 	virtual void OnWeaponReloadingFinished();
+
+	virtual void OnScopeEquipped();
+
+	virtual void OnSilencerEqupped();
 
 	virtual void SetIsMenuMode(bool IsInMenuMode);
 
@@ -643,4 +634,12 @@ public:
 	virtual void SetCurrentWeaponSpread(float Value) { WeaponSpreadData.CurrentWeaponSpread = Value; }
 
 	virtual  EWeaponState::Type GetWeaponState()const { return WeaponState; }
+
+	virtual void EquipScope(ABFAttachment_Scope* ScopeToEquip);
+
+	virtual void UnequipScope();
+
+	virtual void EquipSilencer(ABFAttachment_Silencer* SilencerToEquip); 
+
+	virtual void UnEquipSilencer();
 };

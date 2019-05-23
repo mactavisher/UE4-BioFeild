@@ -24,6 +24,7 @@ void UBFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Direction = CalculateDirection();
 		SpeedXY = GetXYSpeed();
 		bIsWalking =SpeedXY> CharacterMovementComp->MaxWalkSpeed * 0.9f;
+		bIsSprinting = Character->bIsSprint;
     }
 	Super::NativeUpdateAnimation(DeltaSeconds);
 }

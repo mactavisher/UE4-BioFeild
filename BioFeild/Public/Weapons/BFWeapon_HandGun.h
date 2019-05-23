@@ -16,7 +16,7 @@ class BIOFEILD_API ABFWeapon_HandGun : public ABFWeaponBase
 	GENERATED_UCLASS_BODY()
 
 		/** Weapon single shoot component */
-		UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WeponMesh", meta = (AllowPrivateAccess = "true"))
+		UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BFWeaponShootComp", meta = (AllowPrivateAccess = "true"))
 		UBFWeaponSingleShootComponent* SingleShotComp;
 	
 protected:

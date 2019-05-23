@@ -24,6 +24,15 @@ class BIOFEILD_API UBFCurrentWeaponWidget : public UBFUserWidgetBase
 	UPROPERTY()
 		ESlateVisibility  ReloadVisibility;
 
+	UPROPERTY()
+		FLinearColor CrossHairColor;
+
+	UPROPERTY()
+		FLinearColor TargetHitColor;
+
+	UPROPERTY()
+		class  ABFWeaponBase* CurrentWeapon;
+
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "UI")
 		virtual ESlateVisibility GetCrossHairVisibility()const;
@@ -40,7 +49,28 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "UI")
 		virtual ESlateVisibility GetReloadVisibility()const;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "UI")
+		virtual FLinearColor GetCrossHairColor()const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "UI")
+		virtual FLinearColor GetHitTargetColor()const;
+
+	UFUNCTION(BlueprintSetter,Category = "UI")
+		virtual void SetCurrentWeapon(ABFWeaponBase* NewWeapon) { CurrentWeapon = NewWeapon; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "UI")
+		virtual ABFWeaponBase* GetCurrentWeapon();
+
 	UFUNCTION(BlueprintCallable, Category = "UI")
 		virtual void SetReloadVisibility(ESlateVisibility NewVisibility) { this->ReloadVisibility = NewVisibility; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "UI")
+		virtual int32 GetCurrentAmmo()const;
+
+	UFUNCTION(BlueprintCallable,BlueprintPure, Category = "UI")
+		virtual int32 GetLeftAmmo()const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "UI")
+		virtual UTexture2D* GetWeaponIConTexture()const;
 	
 };

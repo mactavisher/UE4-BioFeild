@@ -28,7 +28,7 @@ void UBFInventoryComponent::AddWeaponToSlot(ABFWeaponBase* WeaponToAdd)
 
 void UBFInventoryComponent::AddWeaponToSpecificSlot(ABFWeaponBase* WeaponToAdd, uint8 SlotIndex)
 {
-	if (WeaponSlots.Num() >=(SlotIndex-1))
+	if (WeaponSlots.Num() >=(SlotIndex+1))
 	{
 		if (!WeaponSlots[SlotIndex].bIsSlotOccupied)
 		{
@@ -44,7 +44,7 @@ void UBFInventoryComponent::AddWeaponToSpecificSlot(ABFWeaponBase* WeaponToAdd, 
 
 ABFWeaponBase* UBFInventoryComponent::GiveSlotWeapon(uint8 SlotIndex)
 {
-	if (WeaponSlots.Num()>=(SlotIndex-1))
+	if (WeaponSlots.Num()>=(SlotIndex+1))
 	{
 		if (WeaponSlots[SlotIndex].SlotWeapon && !WeaponSlots[SlotIndex].SlotWeapon->GetIsSelectedAsCurrent())
 		{
@@ -56,7 +56,7 @@ ABFWeaponBase* UBFInventoryComponent::GiveSlotWeapon(uint8 SlotIndex)
 
 void UBFInventoryComponent::RemoveSlotWeapon(uint8 SlotIndex)
 {
-	if (WeaponSlots.Num() - 1 >= SlotIndex)
+	if (WeaponSlots.Num() - 1 >= SlotIndex+1)
 	{
 		WeaponSlots[SlotIndex].SlotWeapon = nullptr;
 		WeaponSlots[SlotIndex].bIsSlotOccupied = false;

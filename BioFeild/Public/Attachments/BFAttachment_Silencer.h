@@ -21,6 +21,16 @@ class BIOFEILD_API ABFAttachment_Silencer : public ABFAttachmentBase
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sound")
 		USoundCue* FireSound;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sound")
+		FName MuzzleFlashSocket;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sound")
+		float FireLoudnessModifier;
+
 public:
 	virtual USoundCue* GetSilencerFireSound()const { return FireSound; }
+
+	virtual FName GetMuzzleFlashSocket()const { return MuzzleFlashSocket; }
+
+	virtual float GetFireLoudnessModifier()const { return FireLoudnessModifier; }
 };

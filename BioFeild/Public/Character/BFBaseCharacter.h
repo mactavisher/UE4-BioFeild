@@ -103,7 +103,7 @@ struct FCharacterEnergyData {
 	}
 };
 
-/**struct to store character's heart beat data  */
+/**struct to store character's heart beat data £¬should make this work as a components later*/
 USTRUCT(BlueprintType)
 struct FCharacterHeartBeatData {
 
@@ -257,18 +257,6 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
 		void StartCrouch();
 
-	/** notify animation blueprint that  player start jump */
-	UFUNCTION(BlueprintCallable, Category = "BF|Character Movements")
-		virtual void Jump()override;
-
-	/** notify animation blueprint that  player start sprinting */
-	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
-		void Sprint();
-
-	/** notify animation blueprint that  player is stop sprinting */
-	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
-		void StopSprint();
-
 
 public:
 	virtual void StartDestoryCharacter();
@@ -313,6 +301,19 @@ public:
 	virtual bool CheckCanSelfTurn();
 
 	virtual UAnimMontage* GetSelfTurnAnim();
+
+	/** notify animation blueprint that  player start jump */
+	UFUNCTION(BlueprintCallable, Category = "BF|Character Movements")
+		virtual void Jump()override;
+
+	/** notify animation blueprint that  player start sprinting */
+	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
+		void Sprint();
+
+	/** notify animation blueprint that  player is stop sprinting */
+	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
+		void StopSprint();
+
 
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
 		virtual UBFCharacterMovementComponent*  GetBFCharacterMovement()const { return Cast<UBFCharacterMovementComponent>(GetCharacterMovement()); }

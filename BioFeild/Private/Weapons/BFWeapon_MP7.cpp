@@ -5,11 +5,14 @@
 
 ABFWeapon_MP7::ABFWeapon_MP7(const FObjectInitializer& ObjectInitailizer) : Super(ObjectInitailizer)
 {
-	WeaponConfigData.TimeBetweenShots = 0.08f;
-	WeaponConfigData.AmmoPerClip = 50;
-	WeaponConfigData.BaseDamage = 18.f;
-	WeaponConfigData.MaxAmmo = 250;
 	WeaponName = EWeaponNames::MP7;
+	WeaponConfigData.TimeBetweenShots = 0.08f;
+	WeaponConfigData.AmmoPerClip = 25;
+	WeaponConfigData.CurrentClipAmmo = WeaponConfigData.AmmoPerClip;
+	WeaponConfigData.BaseDamage = 18.80f;
+	WeaponConfigData.MaxAmmo = WeaponConfigData.AmmoPerClip * 10;
+	WeaponConfigData.AmmoLeft = WeaponConfigData.MaxAmmo;
+	bNeedExtraScopeHolder = false;
 }
 
 void ABFWeapon_MP7::Tick(float DeltaTime)
@@ -20,6 +23,7 @@ void ABFWeapon_MP7::Tick(float DeltaTime)
 void ABFWeapon_MP7::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+	
 }
 
 void ABFWeapon_MP7::BeginPlay()
@@ -56,7 +60,7 @@ FVector ABFWeapon_MP7::GetADSCameraAdjustVector() const
 		FVector IronSightADSCameraVector = FVector(30.f, 0.f, -4.8f);
 		return IronSightADSCameraVector;
 	}
-	return  FVector(30.f, 0.f, -4.8f);
+	return  FVector(28.f, 0.f, -4.2f);
 }
 
 void ABFWeapon_MP7::SetupAttachments()

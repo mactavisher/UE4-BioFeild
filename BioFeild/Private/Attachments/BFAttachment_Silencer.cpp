@@ -4,7 +4,8 @@
 
 ABFAttachment_Silencer::ABFAttachment_Silencer(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
-
+	MuzzleFlashSocket = FName(TEXT("MuzzleFlashSocket"));
+	FireLoudnessModifier = 0.01f;
 }
 
 
