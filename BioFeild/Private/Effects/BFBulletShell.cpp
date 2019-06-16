@@ -21,6 +21,7 @@ ABFBulletShell::ABFBulletShell(const FObjectInitializer& ObjectInitailizer) :Sup
 	ShellParticleComp->OnParticleCollide.AddUnique(Delegate);
 	InitialLifeSpan = 2.0f;
 	bIsEffectPlayed = false;
+	bReplicates = true;
 }
 
 void ABFBulletShell::PlayShellCollisionSound(FName EventName, float EmitterTime, int32 ParticleTime, FVector Location, FVector Velocity, FVector Direction, FVector Normal, FName BoneName, UPhysicalMaterial* PhysMat)

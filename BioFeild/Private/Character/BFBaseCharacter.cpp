@@ -76,29 +76,26 @@ void ABFBaseCharacter::SelfTurn()
 	}
 }
 
-void ABFBaseCharacter::StopSprint_Implementation()
+void ABFBaseCharacter::StopSprint()
 {
 	UBFCharacterMovementComponent* CharacterMovement = GetBFCharacterMovement();
 	if (CharacterMovement)
 	{
-		Cast<UBFAnimInstance>(GetMesh()->GetAnimInstance())->bIsSprinting = false;
 		bIsSprint = false;
-		CharacterMovement->SetDefaultMaxWalkSpeed();
+		CharacterMovement->SetDefault();
 		CharacterHeartBeatData.bShouldRestoreHeartBeatRate = true;
 	}
 }
 
-/** default sprint implementation on c++ side */
-void ABFBaseCharacter::Sprint_Implementation()
+void ABFBaseCharacter::Sprint()
 {
 	if (CanSprint())
 	{
 		UBFCharacterMovementComponent* CharacterMovement = Cast<UBFCharacterMovementComponent>(GetCharacterMovement());
 		if (CharacterMovement)
 		{
-			Cast<UBFAnimInstance>(GetMesh()->GetAnimInstance())->bIsSprinting = true;
 			bIsSprint = true;
-			CharacterMovement->SetSprintSpeed();
+			CharacterMovement->SetSprint();
 			CharacterHeartBeatData.bShouldRestoreHeartBeatRate = false;
 			if (CharacterHeartBeatData.bShouldCalHeartBeatRate)
 			{

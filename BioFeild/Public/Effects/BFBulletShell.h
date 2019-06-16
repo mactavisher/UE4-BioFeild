@@ -38,9 +38,9 @@ protected:
 	UPROPERTY()
 	    uint8 bIsEffectPlayed : 1;
 
-	/** Weapon that eject this projectile */
+	/** Weapon that eject this shell */
 	UPROPERTY()
-	    ABFWeaponBase* WeaponEjector;
+	    ABFWeaponBase* Ejector;
 
 	virtual void BeginPlay()override;
 
@@ -50,10 +50,10 @@ protected:
 
 public:
 	/** weapon getter */
-	UFUNCTION(BlueprintCallable, Category = "WeaponShell")
-		virtual ABFWeaponBase* GetWeaponEjector()const { return WeaponEjector; }
+	UFUNCTION(BlueprintCallable, BlueprintPure,Category = "WeaponShell")
+		virtual ABFWeaponBase* GetWeaponEjector()const { return Ejector; }
 
 	/** weapon setter */
-	UFUNCTION(BlueprintCallable)
-		virtual void SetWeaponEjector(ABFWeaponBase* InWeaponEjector) { this->WeaponEjector = InWeaponEjector; }
+	UFUNCTION(BlueprintCallable,Category = "WeaponShell")
+		virtual void SetWeaponEjector(ABFWeaponBase* InEjector) { this->Ejector = InEjector; }
 };

@@ -306,13 +306,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "BF|Character Movements")
 		virtual void Jump()override;
 
-	/** notify animation blueprint that  player start sprinting */
-	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
-		void Sprint();
+		virtual void Sprint();
 
-	/** notify animation blueprint that  player is stop sprinting */
-	UFUNCTION(BlueprintNativeEvent, Category = "BF|Character Movements")
-		void StopSprint();
+		virtual  void StopSprint();
 
 
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")

@@ -43,6 +43,8 @@ ABFPlayerCharacter::ABFPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	OnUnequipWeapon.AddDynamic(this, &ABFPlayerCharacter::OnWeaponUnequiped);
 	AimingFOVTimelineDelegate.BindUFunction(this, "AimingFOVDelegateCallBack");
 	bUseControllerRotationPitch = false;
+	bReplicates = true;
+	bReplicateMovement = true;
 }
 
 void ABFPlayerCharacter::BeginPlay()
@@ -104,8 +106,8 @@ void ABFPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABFPlayerCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABFPlayerCharacter::MoveForward);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ABFPlayerCharacter::Jump);
-	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ABFBaseCharacter::Sprint);
-	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ABFBaseCharacter::StopSprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ABFPlayerCharacter::Sprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ABFPlayerCharacter::StopSprint);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABFPlayerCharacter::FireWeapon);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ABFPlayerCharacter::StopFireWeapon);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ABFPlayerCharacter::AimingDispacher);
@@ -289,16 +291,31 @@ void ABFPlayerCharacter::ToggleAimMode()
 
 void ABFPlayerCharacter::CreateCharacterWidgetInstance()
 {
-	if (CharacterWidgetClass)
+	if (Role > ROLE_Authority)
 	{
-		CharacterWidgetInstance = CreateWidget<UBFCharacterWidget>(GetPlayerController(), CharacterWidgetClass);
-		CharacterWidgetInstance->AddToViewport(0);
+		if (CharacterWidgetClass)
+		{
+			CharacterWidgetInstance = CreateWidget<UBFCharacterWidget>(GetPlayerController(), CharacterWidgetClass);
+			CharacterWidgetInstance->AddToPlayerScreen(0);
+		}
+		if (CurrenetWeaponWidgetClass)
+		{
+			CurrentWeaponWidgetInstance = CreateWidget<UBFCurrentWeaponWidget>(GetPlayerController(), CurrenetWeaponWidgetClass);
+			CurrentWeaponWidgetInstance->AddToPlayerScreen(0);
+		}
 	}
-	if (CurrenetWeaponWidgetClass)
-	{
-		CurrentWeaponWidgetInstance = CreateWidget<UBFCurrentWeaponWidget>(GetPlayerController(), CurrenetWeaponWidgetClass);
-		CurrentWeaponWidgetInstance->AddToViewport(0);
-	}
+}
+
+void ABFPlayerCharacter::Sprint()
+{
+	Super::Sprint();
+	CurrentAnimInstance->bIsSprinting = true;
+}
+
+void ABFPlayerCharacter::StopSprint()
+{
+	Super::StopSprint();
+	CurrentAnimInstance->bIsSprinting = false;
 }
 
 void ABFPlayerCharacter::NotifyItemDetected(ABFInventoryItem* DetectedItem)
@@ -547,9 +564,9 @@ void ABFPlayerCharacter::StopADS_Implementation()
 			bIsADS = false;
 			if (bIsCrouched)
 			{
-				CharacterMovement->SetCrouchSpeed();
+				CharacterMovement->SetCrouch();
 			}
-			CharacterMovement->SetDefaultMaxWalkSpeed();
+			CharacterMovement->SetDefault();
 		}
 		AimingFOVTimeLineComponent->Reverse();
 	}
@@ -579,7 +596,7 @@ void ABFPlayerCharacter::ADS_Implementation()
 				const float CrouchSpeedModifier = CharacterMovement->CrouchSpeedModifier;
 				CharacterMovement->MaxWalkSpeed = CharacterMovement->GetDefaultMaxWalkSpeed()*(AimingSpeedModifier + CrouchSpeedModifier)*0.5f;
 			}
-			CharacterMovement->SetAimingSpeed();
+			CharacterMovement->SetAiming();
 		}
 		if (AimingFOVTimeLineComponent)
 		{

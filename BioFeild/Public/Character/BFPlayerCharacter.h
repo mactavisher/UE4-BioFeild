@@ -242,6 +242,10 @@ protected:
 	virtual void ToggleAimMode();
 
 	virtual void CreateCharacterWidgetInstance();
+   
+	virtual void Sprint()override;
+
+	virtual void StopSprint()override;
 
 	virtual void NotifyItemDetected(ABFInventoryItem* DetectedItem);
 

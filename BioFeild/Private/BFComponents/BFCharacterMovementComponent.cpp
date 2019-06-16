@@ -4,6 +4,12 @@
 
 UBFCharacterMovementComponent::UBFCharacterMovementComponent(const FObjectInitializer& ObjectInitailizer) :Super(ObjectInitailizer)
 {
+
+}
+
+void UBFCharacterMovementComponent::BeginPlay()
+{
+	Super::BeginPlay();
 	MaxWalkSpeed = 350.f;
 	SprintSpeedModifier = 3.f;
 	AimingSpeedModifier = 0.6f;
@@ -14,33 +20,29 @@ UBFCharacterMovementComponent::UBFCharacterMovementComponent(const FObjectInitia
 	MaxAcceleration = 350.f;
 }
 
-void UBFCharacterMovementComponent::BeginPlay()
+
+void UBFCharacterMovementComponent::SetSprint()
 {
-	Super::BeginPlay();
+	MaxAcceleration = 1200.f;
+	MaxWalkSpeed = MaxWalkSpeed * SprintSpeedModifier;
 }
 
-void UBFCharacterMovementComponent::SetSprintSpeed()
+void UBFCharacterMovementComponent::SetAiming()
 {
-	MaxAcceleration = 600.f;
-	MaxWalkSpeed = MaxWalkSpeed* SprintSpeedModifier;
+	MaxWalkSpeed = MaxWalkSpeed * AimingSpeedModifier;
 }
 
-void UBFCharacterMovementComponent::SetAimingSpeed()
+void UBFCharacterMovementComponent::SetCrouch()
 {
-	MaxWalkSpeed = MaxWalkSpeed* AimingSpeedModifier;
+	MaxWalkSpeed = MaxWalkSpeed * CrouchSpeedModifier;
 }
 
-void UBFCharacterMovementComponent::SetCrouchSpeed()
+void UBFCharacterMovementComponent::SetADS()
 {
-	MaxWalkSpeed = MaxWalkSpeed* CrouchSpeedModifier;
+	MaxWalkSpeed = MaxWalkSpeed * ADSSpeedModifier;
 }
 
-void UBFCharacterMovementComponent::SetADSSpeed()
-{
-	MaxWalkSpeed = MaxWalkSpeed* ADSSpeedModifier;
-}
-
-void UBFCharacterMovementComponent::SetDefaultMaxWalkSpeed()
+void UBFCharacterMovementComponent::SetDefault()
 {
 	MaxWalkSpeed = DefaultMaxWalkSpeed;
 }

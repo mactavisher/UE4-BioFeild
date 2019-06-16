@@ -38,11 +38,13 @@ ABFWeaponBase::ABFWeaponBase(const FObjectInitializer& ObjectInitailizer) :Super
 	canBePickedUp = false;
 	bNeedExtraIronSight = false;
 	bNeedExtraScopeHolder = false;
-	FireLoudness = 50.0f;
+	FireLoudness = 250.0f;
 	NoiseRadius = 3000.f;
 	WeaponState = EWeaponState::Idle;
 	AimingMode = EAmingMode::Aim;
 	bIsInMenuMode = false;
+	bReplicates = true;
+	bReplicateMovement = true;
 	LastFireTime = 0.f;
 }
 

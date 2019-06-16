@@ -34,21 +34,22 @@ class BIOFEILD_API UBFCharacterMovementComponent : public UCharacterMovementComp
 
 
 protected:
-	UPROPERTY()
+
+	UPROPERTY(Transient)
 	ABFBaseCharacter* OwnerCharacter;
 
 	virtual void BeginPlay()override;
 
 public:
-	virtual void SetSprintSpeed();
+	virtual void SetSprint();
 
-	virtual void SetAimingSpeed();
+	virtual void SetAiming();
 
-	virtual void SetCrouchSpeed();
+	virtual void SetCrouch();
 
-	virtual void SetADSSpeed();
+	virtual void SetADS();
 
-	virtual void SetDefaultMaxWalkSpeed();
+	virtual void SetDefault();
 
 	virtual float GetDefaultMaxWalkSpeed()const { return DefaultMaxWalkSpeed; }
 
