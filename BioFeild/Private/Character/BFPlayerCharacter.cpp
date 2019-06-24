@@ -30,9 +30,8 @@ ABFPlayerCharacter::ABFPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	GetCapsuleComponent()->SetCapsuleRadius(GetCapsuleComponent()->GetScaledCapsuleRadius()*1.5f);
 	AimingFOVTimeLineComponent = ObjectInitializer.CreateDefaultSubobject<UTimelineComponent>(this, TEXT("AimingFOVTimelineComp"));
 	NoiseEmmiterComp = ObjectInitializer.CreateDefaultSubobject<UPawnNoiseEmitterComponent>(this, TEXT("NoiseEmmiter"));
-	//SpringArmComp->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	SpringArmComp->SetupAttachment(GetCapsuleComponent());
-	SpringArmComp->TargetArmLength = 5.f;
+	SpringArmComp->TargetArmLength = 2.f;
 	CameraComp->SetupAttachment(SpringArmComp);
 	Mesh3PComp->SetupAttachment(GetCapsuleComponent());
 	AimingFOVTimeLineComponent->SetComponentTickEnabled(true);
@@ -84,7 +83,6 @@ void ABFPlayerCharacter::Tick(float DeltaTime)
 	{
 		CalculateTurnData();
 	}
-	DetectItem();
 	//AimingFOVTimeLineComponent->TickComponent(DeltaTime, ELevelTick::LEVELTICK_TimeOnly, NULL);
 }
 
@@ -291,8 +289,6 @@ void ABFPlayerCharacter::ToggleAimMode()
 
 void ABFPlayerCharacter::CreateCharacterWidgetInstance()
 {
-	if (Role > ROLE_Authority)
-	{
 		if (CharacterWidgetClass)
 		{
 			CharacterWidgetInstance = CreateWidget<UBFCharacterWidget>(GetPlayerController(), CharacterWidgetClass);
@@ -303,7 +299,6 @@ void ABFPlayerCharacter::CreateCharacterWidgetInstance()
 			CurrentWeaponWidgetInstance = CreateWidget<UBFCurrentWeaponWidget>(GetPlayerController(), CurrenetWeaponWidgetClass);
 			CurrentWeaponWidgetInstance->AddToPlayerScreen(0);
 		}
-	}
 }
 
 void ABFPlayerCharacter::Sprint()
@@ -387,58 +382,6 @@ void ABFPlayerCharacter::FreeStyleCamera()
 void ABFPlayerCharacter::FixedStyleCamera()
 {
 	CharacterTurnData.bShouldTurn = true;
-}
-
-void ABFPlayerCharacter::DetectItem()
-{
-	const float TraceLength = 10000.f;
-	FHitResult TraceHit(ForceInit);
-	GetWorld()->LineTraceSingleByChannel(TraceHit, CameraComp->GetComponentLocation(), CameraComp->GetComponentLocation() + CameraComp->GetForwardVector()*TraceLength, ECollisionChannel::ECC_Camera);
-	if (TraceHit.bBlockingHit)
-	{
-		DetectedItemInfo.bHitSomething = true;
-		DetectedItemInfo.HitActor = TraceHit.GetActor();
-		if (TraceHit.Actor != nullptr)
-		{
-			DetectedItemInfo.bHitSomething = true;
-			if (TraceHit.Actor->GetClass()->IsChildOf(ABFZombie::StaticClass()))
-			{
-				ABFZombie* HitZombie = Cast<ABFZombie>(TraceHit.GetActor());
-				if (!HitZombie->GetCharacterIsDead())
-				{
-					DetectedItemInfo.bIsThreat = true;
-				}
-				else {
-					DetectedItemInfo.bIsThreat = false;
-				}
-			}
-			if (TraceHit.Actor->GetClass()->IsChildOf(ABFInventoryItem::StaticClass()))
-			{
-				DetectedItemInfo.HitItem = Cast<ABFInventoryItem>(TraceHit.GetActor());
-				DetectedItemInfo.HitItem->ReceiveDetected(this, this, this->GetPlayerController());
-				DetectedItemInfo.bHitInventoryItem = true;
-				DetectedItemInfo.bHitSomething = true;
-				DetectedItemInfo.bIsThreat = false;
-			}
-		}
-		else {
-			DetectedItemInfo.bHitSomething = false;
-			DetectedItemInfo.HitActor = nullptr;
-			DetectedItemInfo.bIsThreat = false;
-			DetectedItemInfo.bHitInventoryItem = false;
-			DetectedItemInfo.HitItem = nullptr;
-		}
-	}
-	else {
-		DetectedItemInfo.bHitSomething = false;
-		DetectedItemInfo.HitActor = nullptr;
-		DetectedItemInfo.bIsThreat = false;
-		DetectedItemInfo.bHitInventoryItem = false;
-		DetectedItemInfo.HitItem = nullptr;
-	}
-	//#if WITH_EDITOR
-	//	DrawDebugLine(GetWorld(), CameraComp->GetComponentLocation(), CameraComp->GetComponentLocation()+CameraComp->GetForwardVector()*TraceLength,FColor::Green,false,0.05f);
-	//#endif
 }
 
 void ABFPlayerCharacter::InitializeUserWidget()

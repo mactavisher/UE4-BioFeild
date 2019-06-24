@@ -94,7 +94,7 @@ void ABFZombie::OnHearNoise(APawn* Instigator, const FVector& Location, float Vo
 void ABFZombie::HandleDeath()
 {
 	Super::HandleDeath();
-	uint8 RandomNumber = FMath::RandHelper(3);
+	uint8 RandomNumber = FMath::RandHelper(7);
 	if (RandomNumber == 2||RandomNumber==0)
 	{
 		CharacterMesh->SetSimulatePhysics(false);

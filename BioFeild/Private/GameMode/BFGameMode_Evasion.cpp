@@ -41,9 +41,9 @@ void ABFGameMode_Evasion::FinishCurrentWave()
 }
 
 
-void ABFGameMode_Evasion::ModifyDamage(float& Outdamage, AController* DamageCauser, AController*DamagedPlayer)
+void ABFGameMode_Evasion::ModifyDamage(float& Outdamage, AController* DamageCauser, AController*DamagedPlayer, FDamageEvent DamageEvent)
 {
-	Super::ModifyDamage(Outdamage, DamageCauser, DamagedPlayer);
+	Super::ModifyDamage(Outdamage, DamageCauser, DamagedPlayer, DamageEvent);
 }
 
 void ABFGameMode_Evasion::ResetCurrentLivesLeft()

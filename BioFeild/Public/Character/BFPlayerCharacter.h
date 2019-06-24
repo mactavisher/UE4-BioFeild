@@ -330,8 +330,6 @@ public:
 	UFUNCTION()
 		virtual void FixedStyleCamera();
 
-	virtual void DetectItem();
-
 	virtual void InitializeUserWidget();
 
 	UFUNCTION(BlueprintCallable)

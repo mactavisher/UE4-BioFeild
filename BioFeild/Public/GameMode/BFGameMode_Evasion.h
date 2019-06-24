@@ -42,12 +42,15 @@ class BIOFEILD_API ABFGameMode_Evasion : public ABFGameModeBase
 
 public:
 
+	/** ordinal zombie types */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ZombieType")
 		TArray<TSubclassOf<class ABFZombie>> ZombieTypeClasses;
 
+	/** ammo pack reward for player killing zombies */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ZombieType")
-		TSubclassOf<class ABFPickup_Health> AmmoPickupClass;
+		TSubclassOf<class ABFPickup_Ammo> AmmoPickupClass;
 
+	/** health reward pack for player killing zombies */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ZombieType")
 		TSubclassOf<class ABFPickup_Health> HealthPickupClass;
 
@@ -117,5 +120,5 @@ public:
 
 	virtual void FinishCurrentWave();
 
-	virtual void ModifyDamage(float& Outdamage, AController* DamageCauser, AController*DamagedPlayer)override;
+	virtual void ModifyDamage(float& Outdamage, AController* DamageCauser, AController*DamagedPlayer,FDamageEvent DamageEvent)override;
 };

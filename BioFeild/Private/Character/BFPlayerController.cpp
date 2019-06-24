@@ -56,3 +56,8 @@ void ABFPlayerController::DisableSlowMotion()
 {
 	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.f);
 }
+
+void ABFPlayerController::ShowItemInfo(ABFInventoryItem* ItemToshow)
+{
+
+}

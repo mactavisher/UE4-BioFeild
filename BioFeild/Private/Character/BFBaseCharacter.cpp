@@ -18,8 +18,6 @@ ABFBaseCharacter::ABFBaseCharacter(const FObjectInitializer& ObjectInitializer) 
 	PrimaryActorTick.bCanEverTick = false;
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UBFHealthComponent>(this, TEXT("HealthComp"));
 	CharacterVoiceComponent = ObjectInitializer.CreateDefaultSubobject<UBFCharacterAudioComponent>(this, TEXT("AudioComp"));
-	CharacterVoiceComponent->SetupAttachment(CharacterMesh);
-	CharacterVoiceComponent->AddRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight));
 	CharacterBillBoardComp = ObjectInitializer.CreateDefaultSubobject<UBillboardComponent>(this, TEXT("BillBordComp"));
 }
 
@@ -52,6 +50,10 @@ void ABFBaseCharacter::PostInitializeComponents()
 	HealthComponent->OnCharacterShouldDie.AddDynamic(this, &ABFBaseCharacter::HandleDeath);
 	HealthComponent->OnLowHealth.AddDynamic(this, &ABFBaseCharacter::OnLowHealth);
 	HealthComponent->OnHealthReduced.AddDynamic(this, &ABFBaseCharacter::OnHealthReduced);
+	CharacterVoiceComponent->SetupAttachment(CharacterMesh);
+	CharacterVoiceComponent->AddRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight*2.5f), false);
+	CharacterBillBoardComp->SetupAttachment(CharacterMesh);
+	CharacterBillBoardComp->AddRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight*2.6f), false);
 	RegisterAllComponents();
 }
 
@@ -143,10 +145,10 @@ float ABFBaseCharacter::PlayAnimMontage(class UAnimMontage* AnimMontage, float I
 	return AnimDuration;
 }
 
-float ABFBaseCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+float ABFBaseCharacter::TakeDamage(float Damage, struct FDamageEvent const & DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	ABFGameMode_Evasion* const CurrentGameMode = GetWorld()->GetAuthGameMode<ABFGameMode_Evasion>();
-	CurrentGameMode->ModifyDamage(Damage, EventInstigator, this->GetController());
+	CurrentGameMode->ModifyDamage(Damage, EventInstigator, this->GetController(),DamageEvent);
 	HealthComponent->ReduceHealth(Damage);
 	return Damage;
 }

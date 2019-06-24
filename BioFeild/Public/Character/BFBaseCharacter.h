@@ -241,6 +241,10 @@ public:
 	UPROPERTY()
 		bool bIsDead;
 
+	UPROPERTY()
+		uint8 bEnableDetectTrace;
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -269,7 +273,7 @@ public:
 
 	float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)override;
 
-	float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)override;
+	float TakeDamage(float Damage, struct FDamageEvent const & DamageEvent, AController* EventInstigator, AActor* DamageCauser)override;
 
 	virtual void SetHitProjectile(ABFProjectile* HitProjectile);
 

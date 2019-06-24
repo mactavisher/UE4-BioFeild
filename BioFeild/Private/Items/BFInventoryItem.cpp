@@ -8,6 +8,8 @@ ABFInventoryItem::ABFInventoryItem(const FObjectInitializer& ObjectInitializer) 
 {
 	PrimaryActorTick.bCanEverTick = false;
 	PrimaryActorTick.SetTickFunctionEnable(false);
+	bIsCollectibleItem = true;
+	bCanCollect = false;
 }
 
 void ABFInventoryItem::BeginPlay()
@@ -20,9 +22,9 @@ void ABFInventoryItem::ReceiveDetected(class AActor* DetectedBy, class ABFBaseCh
 	const FVector CharacterLocation = DectectedCharacter->GetActorLocation();
 	const FVector SelfLocation = this->GetActorLocation();
 	const float Distance = FVector::Distance(SelfLocation, CharacterLocation);
-	if (FMath::Abs(Distance) <= 500.f)
+	if (Distance <= 50)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("You are close enough to pick me up"));
+		bCanCollect = true;
 	}
 }
 

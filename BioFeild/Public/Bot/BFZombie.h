@@ -22,7 +22,7 @@ class ABFZombieController;
 USTRUCT(BlueprintType)
 struct FHitAnim {
 	GENERATED_USTRUCT_BODY()
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
+		UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
 		UAnimMontage* FrontHitAnim;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animation")
@@ -50,14 +50,14 @@ enum class EZombieState :uint8 {
 /** enum to specify zombies state */
 UENUM(BlueprintType)
 enum class EZombieMoveType :uint8 {
-	
+
 	WalkTo,
 	ChargeTo,
 	CrawlerTo,
 };
 
 //event signature syntaxes
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSeePlayerSignatrue, class ABFPlayerController*, Player,class ABFPlayerCharacter*, PlayerPawn,FVector,Location);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSeePlayerSignatrue, class ABFPlayerController*, Player, class ABFPlayerCharacter*, PlayerPawn, FVector, Location);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHearPlayerSignature, ABFPlayerCharacter*, Instigator, const FVector&, Location, float, Volume);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOZomibeDeadSignature);
 
@@ -159,8 +159,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Zombie")
 		virtual EZombieState GetZombieCurrentState()const { return ZombieState; }
-
-	 
 
 
 	UFUNCTION(BlueprintCallable, Category = "Zombie")

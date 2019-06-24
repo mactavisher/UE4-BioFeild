@@ -9,6 +9,7 @@
 
 class ABFPlayerCharacter;
 class UArrowComponent;
+class ABFInventoryItem;
 /**
 *
 */
@@ -18,7 +19,7 @@ class BIOFEILD_API ABFPlayerController : public APlayerController
 	GENERATED_UCLASS_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Controll|TimeDialation", meta = (ClampMin = "0", ClampMax = "1"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Controll|TimeDialation", meta = (ClampMin = "0.01", ClampMax = "10"))
 		float GlobalTimeDialationAmount;
 
 #if WITH_EDITORONLY_DATA
@@ -29,10 +30,13 @@ public:
 
 protected:
 	/**cached specified possessed Character  */
+	UPROPERTY()
 	ABFPlayerCharacter* PoccessedPlayerCharacter;
 
+	UPROPERTY()
 	int32  Score;
 
+	UPROPERTY()
 	ETeam InTeam;
 
 protected:
@@ -52,6 +56,8 @@ public:
 	virtual void SetTeam(ETeam InTeam) { this->InTeam = InTeam; }
 
 	virtual  ETeam GetTeam()const { return InTeam; }
+
+	virtual void ShowItemInfo(ABFInventoryItem* ItemToshow);
 
 	/** return current controlled character */
 	virtual ABFPlayerCharacter* GetPoccessedPlayerCharacter()const { return PoccessedPlayerCharacter; }

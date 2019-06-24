@@ -19,9 +19,16 @@ class BIOFEILD_API ABFPlayerCameraManager : public APlayerCameraManager
 		UPROPERTY()
 		ABFPlayerController* BFPlayerController;
 
+	UPROPERTY(Transient)
+		uint8 bEnableItemDetectTrace:1;
+
 
 private:
 
 		virtual void UpdateCamera(float DeltaTime)override;
+
+		virtual void Tick(float DeltaSeconds)override;
+
+		virtual void  GetItemDetectTraceHitResult(FHitResult &TraceHitResult);
 	    
 };

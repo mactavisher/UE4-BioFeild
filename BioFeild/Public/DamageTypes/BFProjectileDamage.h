@@ -16,5 +16,4 @@ class BIOFEILD_API UBFProjectileDamage : public UDamageType
 
 		UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category="Message")
 		FString KillMessage;
-	    
 };
