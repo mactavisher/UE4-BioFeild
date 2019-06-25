@@ -40,7 +40,7 @@ USTRUCT(BlueprintType)
 struct FItemTraceDetectResult {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		uint8 bHitSomething : 1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -97,30 +97,34 @@ class BIOFEILD_API ABFPlayerCharacter : public ABFBaseCharacter
 {
 	GENERATED_UCLASS_BODY()
 
-		/*create camera component for player*/
+	/** camera component*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		UCameraComponent*  CameraComp;
 
+	/** spring arm component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "SpringArm", meta = (AllowPrivateAccess = "true"))
 		USpringArmComponent* SpringArmComp;
 
-	/*create camera sprinArm  for Camera*/
+	/*inventory component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		UBFInventoryComponent* InventoryComponent;
 
+	/** time line component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		UTimelineComponent* AimingFOVTimeLineComponent;
 
+	/** noise emitter component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		UPawnNoiseEmitterComponent* NoiseEmmiterComp;
 
-	/*create 3rd view mesh for player character */
+	/*3rd view mesh */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "CharacterMesh", meta = (AllowPrivateAccess = "true"))
 		UBFSkeletalMeshComponent*  Mesh3PComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TraceDetect")
 		FItemTraceDetectResult DetectedItemInfo;
 
+	/** used for aiming FOV interpolation */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Curve")
 		UCurveFloat* AimingFOVCurve;
 
@@ -185,6 +189,7 @@ protected:
 	UPROPERTY()
 		UBFAnimInstance* CurrentAnimInstance;
 
+	UPROPERTY()
 	FOnTimelineFloat AimingFOVTimelineDelegate;
 
 	UPROPERTY()
@@ -242,7 +247,7 @@ protected:
 	virtual void ToggleAimMode();
 
 	virtual void CreateCharacterWidgetInstance();
-   
+
 	virtual void Sprint()override;
 
 	virtual void StopSprint()override;
@@ -333,23 +338,23 @@ public:
 	virtual void InitializeUserWidget();
 
 	UFUNCTION(BlueprintCallable)
-	virtual FTargetHitInfo GetTargetHitInfo()const { return TargetHitInfo; }
+		virtual FTargetHitInfo GetTargetHitInfo()const { return TargetHitInfo; }
 
 	virtual void Update1pMeshTransform(const FVector& CameraLocation, const FRotator& CameraRotation);
 
 	UFUNCTION()
-	virtual void AimingFOVDelegateCallBack();
+		virtual void AimingFOVDelegateCallBack();
 
 	UFUNCTION()
-	virtual void ResetTargetHitInfo();
+		virtual void ResetTargetHitInfo();
 
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
-	virtual FItemTraceDetectResult GetTraceDetectResult()const { return DetectedItemInfo; }
+		virtual FItemTraceDetectResult GetTraceDetectResult()const { return DetectedItemInfo; }
 
 	virtual UBFSkeletalMeshComponent* GetMesh3p()const { return Mesh3PComp; }
 
 	UFUNCTION(BlueprintCallable, Category = "BFCharacter")
-	virtual EViewMode GetViewMode()const { return ViewMode; }
+		virtual EViewMode GetViewMode()const { return ViewMode; }
 
 	virtual FTransform GetCameraOriginalTransform()const { return CameraOriginalRelativeTransform; }
 
